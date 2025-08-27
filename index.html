@@ -124,6 +124,18 @@
             word-break: break-word;
         }
         
+        .filetype {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(to right, #2575fc, #6a11cb);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
         .download-section {
             padding: 25px;
             text-align: center;
@@ -382,6 +394,12 @@
                 <span class="info-value" id="fileExtension">-</span>
             </div>
             <div class="info-row">
+                <span class="info-label"><i class="fas fa-tag"></i> Tipe:</span>
+                <span class="info-value" id="fileType">
+                    <div class="filetype"><span>File</span><span> (.EXT)<span></span></span></div>
+                </span>
+            </div>
+            <div class="info-row">
                 <span class="info-label"><i class="fas fa-calendar"></i> Diunggah:</span>
                 <span class="info-value" id="fileUploaded">-</span>
             </div>
@@ -432,6 +450,7 @@ curl -X 'GET' \
     "name": "Terakomari - MD.zip",
     "size": "6.78MB",
     "extension": "zip",
+    "type": "Archive",
     "uploaded": "2024-02-22 07:29:23",
     "downloadUrl": "https://download2264.mediafire.com/.../Terakomari+-+MD.zip"
   }
@@ -480,7 +499,7 @@ curl -X 'GET' \
                     countdownElement.textContent = seconds;
                     
                     if (seconds <= 0) {
-                        clearInterval(countdownInterval);
+                        clearInterval(countcountdownInterval);
                         retryInfo.style.display = 'none';
                     }
                 }, 1000);
@@ -531,6 +550,11 @@ curl -X 'GET' \
                     document.getElementById('fileExtension').textContent = data.data.extension;
                     document.getElementById('fileUploaded').textContent = data.data.uploaded;
                     
+                    // Update tipe file
+                    const fileType = data.data.type || getFileTypeFromExtension(data.data.extension);
+                    const fileTypeElement = document.getElementById('fileType');
+                    fileTypeElement.innerHTML = `<div class="filetype"><span>${fileType}</span><span> (.${data.data.extension.toUpperCase()})<span></span></span></div>`;
+                    
                     // Set download URL
                     if (data.data.downloadUrl) {
                         downloadButton.href = data.data.downloadUrl;
@@ -558,6 +582,30 @@ curl -X 'GET' \
                     loadingIndicator.style.display = 'none';
                     progressBar.style.display = 'none';
                     currentRetryCount = retryCount;
+                }
+            }
+            
+            // Fungsi untuk menentukan tipe file berdasarkan ekstensi (fallback jika API tidak menyediakan)
+            function getFileTypeFromExtension(extension) {
+                const ext = extension.toLowerCase();
+                if (['mp4', 'avi', 'mkv', 'mov', 'wmv', 'flv', 'webm'].includes(ext)) {
+                    return 'Video';
+                } else if (['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma'].includes(ext)) {
+                    return 'Audio';
+                } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(ext)) {
+                    return 'Gambar';
+                } else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) {
+                    return 'Archive';
+                } else if (['pdf', 'doc', 'docx', 'txt', 'rtf'].includes(ext)) {
+                    return 'Dokumen';
+                } else if (['xls', 'xlsx', 'csv'].includes(ext)) {
+                    return 'Spreadsheet';
+                } else if (['ppt', 'pptx'].includes(ext)) {
+                    return 'Presentasi';
+                } else if (['html', 'css', 'js', 'php', 'py', 'java', 'cpp'].includes(ext)) {
+                    return 'Kode';
+                } else {
+                    return 'File';
                 }
             }
             
