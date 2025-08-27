@@ -10,6 +10,8 @@
   "dependencies": {
     "vite": "^4.4.0",
     "cloudscraper": "^4.6.0",
-    "jsdom": "^22.1.0"
+    "jsdom": "^22.1.0",
+    "puppeteer": "^21.5.2",
+    "puppeteer-core": "^21.5.2"
   }
 }
