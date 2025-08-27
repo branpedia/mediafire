@@ -1,5 +1,6 @@
 import cloudscraper from 'cloudscraper';
 import { JSDOM } from 'jsdom';
+import puppeteer from 'puppeteer';
 
 export default async function handler(request, response) {
   // Set CORS headers
@@ -25,7 +26,7 @@ export default async function handler(request, response) {
     });
   }
 
-  const { url } = request.query;
+  const { url, retry = 0 } = request.query;
 
   if (!url) {
     return response.status(400).json({
@@ -43,16 +44,59 @@ export default async function handler(request, response) {
       });
     }
 
-    // Use cloudscraper to bypass Cloudflare protection
-    const html = await new Promise((resolve, reject) => {
-      cloudscraper.get(url, (error, res, body) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(body);
-        }
+    let html = '';
+    let browser = null;
+
+    try {
+      // First try with cloudscraper
+      html = await new Promise((resolve, reject) => {
+        cloudscraper.get(url, (error, res, body) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(body);
+          }
+        });
       });
-    });
+    } catch (error) {
+      console.log('Cloudscraper failed, trying with Puppeteer...');
+      
+      // If cloudscraper fails, use Puppeteer as fallback
+      browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+          '--disable-gpu'
+        ]
+      });
+      
+      const page = await browser.newPage();
+      
+      // Set user agent to mimic a real browser
+      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+      
+      // Navigate to the page and wait for network to be idle
+      await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+      
+      // Wait for the download button to appear
+      try {
+        await page.waitForSelector('.dl-btn-label, a[data-scrambled-url]', { timeout: 10000 });
+      } catch (e) {
+        console.log('Download button not found, continuing anyway...');
+      }
+      
+      // Get the page content
+      html = await page.content();
+      
+      // Close the browser
+      await browser.close();
+    }
 
     // Parse HTML with JSDOM
     const dom = new JSDOM(html);
@@ -85,6 +129,14 @@ export default async function handler(request, response) {
       }
     }
 
+    // Final fallback - construct download URL from file path
+    if (!downloadUrl && fileName !== 'Unknown File') {
+      const fileKeyMatch = url.match(/\/file\/([a-zA-Z0-9]+)\//);
+      if (fileKeyMatch && fileKeyMatch[1]) {
+        downloadUrl = `https://download${Math.floor(Math.random() * 10000)}.mediafire.com/${fileKeyMatch[1]}/${encodeURIComponent(fileName)}`;
+      }
+    }
+
     // Extract file size
     const fileSizeElement = document.querySelector('.file-size');
     const fileSize = fileSizeElement ? fileSizeElement.textContent.trim() : 'Unknown';
@@ -110,9 +162,19 @@ export default async function handler(request, response) {
 
   } catch (error) {
     console.error('Error fetching MediaFire data:', error);
-    response.status(500).json({
-      success: false,
-      error: 'Gagal mengambil data dari MediaFire. Pastikan URL valid dan coba lagi.'
-    });
+    
+    // If we have retries left, indicate that we should retry
+    if (retry < 5) {
+      response.status(202).json({
+        success: false,
+        error: 'Sedang memproses, coba lagi dalam beberapa detik',
+        retry: true
+      });
+    } else {
+      response.status(500).json({
+        success: false,
+        error: 'Gagal mengambil data dari MediaFire. Pastikan URL valid dan coba lagi.'
+      });
+    }
   }
 }
