@@ -219,6 +219,16 @@
             text-align: center;
         }
         
+        .success {
+            display: none;
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
         .api-info {
             background-color: white;
             border-radius: 15px;
@@ -251,6 +261,31 @@
             color: white;
             font-size: 14px;
             opacity: 0.8;
+        }
+        
+        .retry-info {
+            font-size: 14px;
+            color: #777;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: #f0f0f0;
+            border-radius: 3px;
+            margin: 10px 0;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, #2575fc, #6a11cb);
+            width: 0%;
+            transition: width 0.3s ease;
         }
         
         @media (max-width: 600px) {
@@ -316,9 +351,21 @@
             URL tidak valid. Pastikan URL berasal dari MediaFire.
         </div>
         
+        <div class="success" id="successMessage">
+            Berhasil mengambil data dari MediaFire!
+        </div>
+        
+        <div class="progress-bar" id="progressBar">
+            <div class="progress" id="progress"></div>
+        </div>
+        
         <div class="loading" id="loadingIndicator">
             <div class="spinner"></div>
             <p>Memproses permintaan...</p>
+        </div>
+        
+        <div class="retry-info" id="retryInfo">
+            Mencoba kembali dalam: <span id="countdown">5</span> detik
         </div>
         
         <div class="file-info" id="fileInfo">
@@ -404,26 +451,56 @@ curl -X 'GET' \
             const fileInfo = document.getElementById('fileInfo');
             const downloadSection = document.getElementById('downloadSection');
             const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
             const downloadButton = document.getElementById('downloadButton');
             const copyLinkBtn = document.getElementById('copyLinkBtn');
             const shareBtn = document.getElementById('shareBtn');
             const saveBtn = document.getElementById('saveBtn');
+            const retryInfo = document.getElementById('retryInfo');
+            const countdownElement = document.getElementById('countdown');
+            const progressBar = document.getElementById('progressBar');
+            const progress = document.getElementById('progress');
+            
+            let currentRetryCount = 0;
+            const maxRetries = 5;
+            let retryTimeout = null;
             
             // Fungsi untuk memvalidasi URL MediaFire
             function isValidMediaFireUrl(url) {
                 return url.includes('mediafire.com') && (url.includes('/file/') || url.includes('/download/'));
             }
             
+            // Fungsi untuk menampilkan status retry
+            function showRetryInfo(seconds) {
+                retryInfo.style.display = 'block';
+                countdownElement.textContent = seconds;
+                
+                const countdownInterval = setInterval(() => {
+                    seconds--;
+                    countdownElement.textContent = seconds;
+                    
+                    if (seconds <= 0) {
+                        clearInterval(countdownInterval);
+                        retryInfo.style.display = 'none';
+                    }
+                }, 1000);
+            }
+            
             // Fungsi untuk mendapatkan informasi file dari MediaFire
-            async function getFileInfo(url) {
+            async function getFileInfo(url, retryCount = 0) {
                 loadingIndicator.style.display = 'block';
                 errorMessage.style.display = 'none';
+                successMessage.style.display = 'none';
                 fileInfo.style.display = 'none';
                 downloadSection.style.display = 'none';
+                progressBar.style.display = 'block';
+                
+                // Update progress bar
+                progress.style.width = `${(retryCount / maxRetries) * 100}%`;
                 
                 try {
                     // Menggunakan API route yang telah dibuat
-                    const apiUrl = `/api/mediafire?url=${encodeURIComponent(url)}`;
+                    const apiUrl = `/api/mediafire?url=${encodeURIComponent(url)}&retry=${retryCount}`;
                     const response = await fetch(apiUrl);
                     
                     if (!response.ok) {
@@ -433,7 +510,19 @@ curl -X 'GET' \
                     const data = await response.json();
                     
                     if (!data.success) {
-                        throw new Error(data.error || 'Gagal mengambil data');
+                        // Jika masih ada percobaan tersisa, coba lagi
+                        if (retryCount < maxRetries) {
+                            const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
+                            showRetryInfo(delay / 1000);
+                            
+                            retryTimeout = setTimeout(() => {
+                                getFileInfo(url, retryCount + 1);
+                            }, delay);
+                            
+                            return;
+                        }
+                        
+                        throw new Error(data.error || 'Gagal mengambil data setelah beberapa percobaan');
                     }
                     
                     // Update UI dengan data file
@@ -450,6 +539,8 @@ curl -X 'GET' \
                     // Tampilkan informasi file dan section download
                     fileInfo.style.display = 'block';
                     downloadSection.style.display = 'block';
+                    successMessage.style.display = 'block';
+                    successMessage.textContent = 'Berhasil mengambil data dari MediaFire!';
                     
                 } catch (error) {
                     console.error('Error fetching MediaFire data:', error);
@@ -457,12 +548,20 @@ curl -X 'GET' \
                     errorMessage.style.display = 'block';
                 } finally {
                     loadingIndicator.style.display = 'none';
+                    progressBar.style.display = 'none';
+                    currentRetryCount = retryCount;
                 }
             }
             
             // Event listener untuk tombol pencarian
             searchButton.addEventListener('click', function() {
                 const url = mediafireUrlInput.value.trim();
+                
+                // Hentikan retry sebelumnya jika ada
+                if (retryTimeout) {
+                    clearTimeout(retryTimeout);
+                    retryTimeout = null;
+                }
                 
                 if (!isValidMediaFireUrl(url)) {
                     errorMessage.textContent = 'URL tidak valid. Pastikan URL berasal dari MediaFire.';
@@ -473,7 +572,7 @@ curl -X 'GET' \
                     return;
                 }
                 
-                getFileInfo(url);
+                getFileInfo(url, 0);
             });
             
             // Event listener untuk tombol download
