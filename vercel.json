@@ -1,23 +1,14 @@
 {
-  "headers": [
+  "version": 2,
+  "routes": [
     {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        }
-      ]
-    }
-  ],
-  "rewrites": [
+      "src": "/api/threads",
+      "dest": "/api/threads.js",
+      "methods": ["GET"]
+    },
     {
-      "source": "/api/mediafire",
-      "destination": "/api/mediafire.js"
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
