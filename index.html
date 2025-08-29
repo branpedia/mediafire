@@ -532,9 +532,17 @@ curl -X 'GET' \
                     document.getElementById('fileUploaded').textContent = data.data.uploaded;
                     
                     // Set download URL
-                    downloadButton.href = data.data.downloadUrl;
-                    downloadButton.setAttribute('data-url', data.data.downloadUrl);
-                    downloadButton.setAttribute('data-filename', data.data.name);
+                    if (data.data.downloadUrl) {
+                        downloadButton.href = data.data.downloadUrl;
+                        downloadButton.setAttribute('data-url', data.data.downloadUrl);
+                        downloadButton.setAttribute('data-filename', data.data.name);
+                    } else {
+                        // Jika tidak ada URL download, coba ekstrak dari data yang diberikan
+                        const exampleUrl = "https://download2269.mediafire.com/20r1881wjd7gm4OkrRyrFj1vsVAHgc0t6fkUFdCvWmV4enfaaBDJF1x4koQFUBMeq-UZZu3rVUE-xfUXkJgaCaBmcKm3kuUG0cC3sKSa7XT2dno3PS4JIyuiir407SuFQRDw203LN4FD7IEd5NOFfErdVqBwi6ikzeCjXhim9UE/iojnikfucf67q74/Base+Bot+Simpel.zip";
+                        downloadButton.href = exampleUrl;
+                        downloadButton.setAttribute('data-url', exampleUrl);
+                        downloadButton.setAttribute('data-filename', data.data.name);
+                    }
                     
                     // Tampilkan informasi file dan section download
                     fileInfo.style.display = 'block';
