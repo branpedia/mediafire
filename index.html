@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediaFire API Website</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Threads Downloader</title>
     <style>
         * {
             margin: 0;
@@ -21,54 +20,40 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
         }
         
         .container {
-            background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             width: 100%;
-            max-width: 600px;
-            overflow: hidden;
-            margin-bottom: 30px;
-        }
-        
-        header {
-            background: linear-gradient(to right, #2575fc, #6a11cb);
-            color: white;
-            padding: 25px;
-            text-align: center;
+            max-width: 800px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            margin-top: 40px;
         }
         
         h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.2rem;
         }
         
         .description {
-            font-size: 16px;
-            opacity: 0.9;
-        }
-        
-        .search-section {
-            padding: 25px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .search-form {
-            display: flex;
-            flex-direction: column;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #666;
+            line-height: 1.6;
         }
         
         .input-group {
             display: flex;
-            margin-bottom: 15px;
+            margin-bottom: 25px;
         }
         
-        .url-input {
+        input {
             flex: 1;
-            padding: 12px 15px;
+            padding: 15px;
             border: 2px solid #ddd;
             border-radius: 8px 0 0 8px;
             font-size: 16px;
@@ -76,132 +61,101 @@
             transition: border-color 0.3s;
         }
         
-        .url-input:focus {
-            border-color: #2575fc;
+        input:focus {
+            border-color: #6a11cb;
         }
         
-        .search-btn {
-            background: linear-gradient(to right, #2575fc, #6a11cb);
+        button {
+            background: #6a11cb;
             color: white;
             border: none;
-            padding: 0 20px;
+            padding: 15px 25px;
             border-radius: 0 8px 8px 0;
             cursor: pointer;
+            font-size: 16px;
             font-weight: bold;
-            transition: all 0.3s ease;
+            transition: background 0.3s;
         }
         
-        .search-btn:hover {
-            opacity: 0.9;
+        button:hover {
+            background: #2575fc;
         }
         
-        .example {
-            font-size: 14px;
-            color: #777;
-            margin-top: 10px;
-        }
-        
-        .file-info {
-            padding: 25px;
+        .result {
             display: none;
-            border-bottom: 1px solid #eee;
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
         }
         
-        .info-row {
-            display: flex;
+        .result h2 {
             margin-bottom: 15px;
-            align-items: center;
+            color: #333;
         }
         
-        .info-label {
-            font-weight: bold;
-            width: 120px;
-            color: #2575fc;
+        .media-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
         }
         
-        .info-value {
-            flex: 1;
-            word-break: break-word;
+        .media-item {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
         }
         
-        .download-section {
-            padding: 25px;
-            text-align: center;
-            display: none;
+        .media-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .media-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .media-item video {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
         }
         
         .download-btn {
-            display: inline-block;
-            background: linear-gradient(to right, #2575fc, #6a11cb);
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #6a11cb;
             color: white;
-            padding: 15px 40px;
-            border-radius: 50px;
+            text-align: center;
             text-decoration: none;
             font-weight: bold;
-            font-size: 18px;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(37, 117, 252, 0.4);
-            margin-bottom: 20px;
-            cursor: pointer;
+            border-radius: 0 0 8px 8px;
+            transition: background 0.3s;
         }
         
         .download-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(37, 117, 252, 0.6);
-        }
-        
-        .download-btn:active {
-            transform: translateY(1px);
-        }
-        
-        .download-meta {
-            font-size: 14px;
-            color: #777;
-            margin-top: 10px;
-        }
-        
-        .utility-nav {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-            gap: 15px;
-        }
-        
-        .utility-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: #f5f5f5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #2575fc;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border: 1px solid #ddd;
-            cursor: pointer;
-        }
-        
-        .utility-btn:hover {
-            background-color: #2575fc;
-            color: white;
-            transform: scale(1.1);
+            background: #2575fc;
         }
         
         .loading {
-            display: none;
             text-align: center;
-            padding: 20px;
+            margin: 20px 0;
+            display: none;
         }
         
         .spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left: 4px solid #2575fc;
+            border-left: 4px solid #6a11cb;
             border-radius: 50%;
             width: 30px;
             height: 30px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
+            margin: 0 auto;
         }
         
         @keyframes spin {
@@ -210,451 +164,266 @@
         }
         
         .error {
-            display: none;
-            background-color: #ffebee;
-            color: #c62828;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
+            color: #e74c3c;
             text-align: center;
+            padding: 15px;
+            background: #ffeaea;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
         }
         
-        .success {
-            display: none;
-            background-color: #e8f5e9;
-            color: #2e7d32;
+        .post-info {
+            background: #f9f9f9;
             padding: 15px;
             border-radius: 8px;
-            margin: 20px 0;
-            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .post-info p {
+            margin-bottom: 8px;
+            line-height: 1.5;
         }
         
         .api-info {
-            background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 600px;
-            padding: 25px;
-            margin-bottom: 30px;
+            margin-top: 40px;
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
         }
         
-        .api-info h2 {
-            color: #2575fc;
+        .api-info h3 {
             margin-bottom: 15px;
-            text-align: center;
+            color: #333;
         }
         
-        .code-block {
-            background-color: #f5f5f5;
+        code {
+            background: #eee;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
             padding: 15px;
             border-radius: 8px;
             overflow-x: auto;
             margin: 15px 0;
-            font-family: monospace;
-            font-size: 14px;
         }
         
         footer {
+            margin-top: 40px;
             text-align: center;
-            margin-top: 30px;
             color: white;
             font-size: 14px;
-            opacity: 0.8;
-        }
-        
-        .retry-info {
-            font-size: 14px;
-            color: #777;
-            margin-top: 10px;
-            text-align: center;
-            display: none;
-        }
-        
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background-color: #f0f0f0;
-            border-radius: 3px;
-            margin: 10px 0;
-            overflow: hidden;
-            display: none;
-        }
-        
-        .progress {
-            height: 100%;
-            background: linear-gradient(to right, #2575fc, #6a11cb);
-            width: 0%;
-            transition: width 0.3s ease;
         }
         
         @media (max-width: 600px) {
-            .container {
-                border-radius: 10px;
-            }
-            
-            h1 {
-                font-size: 24px;
-            }
-            
-            .file-info, .download-section, .search-section {
-                padding: 15px;
-            }
-            
-            .info-row {
-                flex-direction: column;
-                align-items: flex-start;
-                margin-bottom: 10px;
-            }
-            
-            .info-label {
-                width: 100%;
-                margin-bottom: 5px;
-            }
-            
             .input-group {
                 flex-direction: column;
             }
             
-            .url-input {
+            input {
                 border-radius: 8px;
                 margin-bottom: 10px;
             }
             
-            .search-btn {
+            button {
                 border-radius: 8px;
-                padding: 12px;
+            }
+            
+            .media-container {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>MediaFire API Website</h1>
-            <p class="description">Dapatkan informasi dan link download dari MediaFire</p>
-        </header>
+        <h1>Threads Downloader</h1>
+        <p class="description">Download gambar dan video dari Threads dengan mudah. Masukkan URL postingan Threads di bawah ini.</p>
         
-        <div class="search-section">
-            <div class="search-form">
-                <div class="input-group">
-                    <input type="text" class="url-input" id="mediafireUrl" placeholder="Masukkan URL MediaFire">
-                    <button class="search-btn" id="searchButton">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-                <p class="example">Contoh: https://www.mediafire.com/file/vj3al1c98u2zdr6/Terakomari_-_MD.zip/file</p>
-            </div>
+        <div class="input-group">
+            <input type="url" id="threadsUrl" placeholder="Masukkan URL Threads (contoh: https://www.threads.net/@username/post/...)">
+            <button id="downloadBtn">Download</button>
         </div>
         
-        <div class="error" id="errorMessage">
-            URL tidak valid. Pastikan URL berasal dari MediaFire.
-        </div>
-        
-        <div class="success" id="successMessage">
-            Berhasil mengambil data dari MediaFire!
-        </div>
-        
-        <div class="progress-bar" id="progressBar">
-            <div class="progress" id="progress"></div>
-        </div>
-        
-        <div class="loading" id="loadingIndicator">
+        <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Memproses permintaan...</p>
+            <p>Memproses...</p>
         </div>
         
-        <div class="retry-info" id="retryInfo">
-            Mencoba kembali dalam: <span id="countdown">5</span> detik
-        </div>
+        <div class="error" id="error"></div>
         
-        <div class="file-info" id="fileInfo">
-            <div class="info-row">
-                <span class="info-label"><i class="fas fa-file"></i> Nama:</span>
-                <span class="info-value" id="fileName">-</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label"><i class="fas fa-weight-hanging"></i> Ukuran:</span>
-                <span class="info-value" id="fileSize">-</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label"><i class="fas fa-folder"></i> Ekstensi:</span>
-                <span class="info-value" id="fileExtension">-</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label"><i class="fas fa-calendar"></i> Diunggah:</span>
-                <span class="info-value" id="fileUploaded">-</span>
-            </div>
-        </div>
-        
-        <div class="download-section" id="downloadSection">
-            <a href="#" class="download-btn" id="downloadButton">
-                <i class="fas fa-download"></i> Download Sekarang
-            </a>
-            <p class="download-meta">Tunggu beberapa detik hingga unduhan dimulai</p>
+        <div class="result" id="result">
+            <div class="post-info" id="postInfo"></div>
             
-            <div class="utility-nav">
-                <button class="utility-btn" title="Salin link" id="copyLinkBtn">
-                    <i class="fas fa-link"></i>
-                </button>
-                <button class="utility-btn" title="Bagikan" id="shareBtn">
-                    <i class="fas fa-share-alt"></i>
-                </button>
-                <button class="utility-btn" title="Simpan" id="saveBtn">
-                    <i class="fas fa-save"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <div class="api-info">
-        <h2>API Documentation</h2>
-        <p>Anda juga dapat mengakses API ini langsung melalui endpoint berikut:</p>
-        
-        <div class="code-block">
-GET /api/mediafire?url={mediafire_url}
+            <h2>Media</h2>
+            <div class="media-container" id="mediaContainer"></div>
         </div>
         
-        <p>Contoh penggunaan dengan curl:</p>
-        
-        <div class="code-block">
-curl -X 'GET' \
-  'https://your-vercel-app.vercel.app/api/mediafire?url=https%3A%2F%2Fwww.mediafire.com%2Ffile%2Fvj3al1c98u2zdr6%2FTerakomari_-_MD.zip%2Ffile' \
-  -H 'accept: application/json'
-        </div>
-        
-        <p>Response JSON akan berisi:</p>
-        
-        <div class="code-block">
-{
+        <div class="api-info">
+            <h3>API Documentation</h3>
+            <p>Anda juga dapat mengakses API ini langsung melalui endpoint berikut:</p>
+            <p><code>GET /api/threads?url={threads_url}</code></p>
+            
+            <p>Contoh penggunaan dengan curl:</p>
+            <pre>curl -X 'GET' \
+  'https://your-vercel-app.vercel.app/api/threads?url=https%3A%2F%2Fwww.threads.net%2F%40username%2Fpost%2FpostId' \
+  -H 'accept: application/json'</pre>
+            
+            <p>Response JSON akan berisi:</p>
+            <pre>{
   "success": true,
   "data": {
-    "name": "Terakomari - MD.zip",
-    "size": "6.78MB",
-    "extension": "zip",
-    "uploaded": "2024-02-22 07:29:23",
-    "downloadUrl": "https://download2264.mediafire.com/.../Terakomari+-+MD.zip"
+    "post_detail": {
+      "code": "POST_ID",
+      "caption_text": "Caption postingan...",
+      "publish_time": "2023-08-29 04:41:33",
+      "media_type": 2,
+      "like_count": 857,
+      "media_list": [
+        {
+          "media_type": 2,
+          "url": "https://video-url.mp4",
+          "cover_image": "https://thumbnail-url.jpg"
+        }
+      ]
+    },
+    "user": {
+      "username": "username",
+      "full_name": "User Full Name",
+      "avatar": "https://avatar-url.jpg"
+    }
   }
-}
+}</pre>
         </div>
     </div>
     
     <footer>
-        <p>MediaFire API Website - Solusi Cloudflare Protection</p>
+        <p>Threads Downloader &copy; 2023</p>
     </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const searchButton = document.getElementById('searchButton');
-            const mediafireUrlInput = document.getElementById('mediafireUrl');
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const fileInfo = document.getElementById('fileInfo');
-            const downloadSection = document.getElementById('downloadSection');
-            const errorMessage = document.getElementById('errorMessage');
-            const successMessage = document.getElementById('successMessage');
-            const downloadButton = document.getElementById('downloadButton');
-            const copyLinkBtn = document.getElementById('copyLinkBtn');
-            const shareBtn = document.getElementById('shareBtn');
-            const saveBtn = document.getElementById('saveBtn');
-            const retryInfo = document.getElementById('retryInfo');
-            const countdownElement = document.getElementById('countdown');
-            const progressBar = document.getElementById('progressBar');
-            const progress = document.getElementById('progress');
+            const threadsUrlInput = document.getElementById('threadsUrl');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const loadingElement = document.getElementById('loading');
+            const errorElement = document.getElementById('error');
+            const resultElement = document.getElementById('result');
+            const postInfoElement = document.getElementById('postInfo');
+            const mediaContainerElement = document.getElementById('mediaContainer');
             
-            let currentRetryCount = 0;
-            const maxRetries = 5;
-            let retryTimeout = null;
-            
-            // Fungsi untuk memvalidasi URL MediaFire
-            function isValidMediaFireUrl(url) {
-                return url.includes('mediafire.com') && (url.includes('/file/') || url.includes('/download/'));
-            }
-            
-            // Fungsi untuk menampilkan status retry
-            function showRetryInfo(seconds) {
-                retryInfo.style.display = 'block';
-                countdownElement.textContent = seconds;
+            downloadBtn.addEventListener('click', async function() {
+                const threadsUrl = threadsUrlInput.value.trim();
                 
-                const countdownInterval = setInterval(() => {
-                    seconds--;
-                    countdownElement.textContent = seconds;
-                    
-                    if (seconds <= 0) {
-                        clearInterval(countdownInterval);
-                        retryInfo.style.display = 'none';
-                    }
-                }, 1000);
-            }
-            
-            // Fungsi untuk mendapatkan informasi file dari MediaFire
-            async function getFileInfo(url, retryCount = 0) {
-                loadingIndicator.style.display = 'block';
-                errorMessage.style.display = 'none';
-                successMessage.style.display = 'none';
-                fileInfo.style.display = 'none';
-                downloadSection.style.display = 'none';
-                progressBar.style.display = 'block';
+                if (!threadsUrl) {
+                    showError('Harap masukkan URL Threads');
+                    return;
+                }
                 
-                // Update progress bar
-                progress.style.width = `${(retryCount / maxRetries) * 100}%`;
+                if (!isValidThreadsUrl(threadsUrl)) {
+                    showError('URL Threads tidak valid. Pastikan URL berasal dari Threads.');
+                    return;
+                }
+                
+                // Reset state
+                hideError();
+                hideResult();
+                showLoading();
                 
                 try {
-                    // Menggunakan API route yang telah dibuat
-                    const apiUrl = `/api/mediafire?url=${encodeURIComponent(url)}&retry=${retryCount}`;
-                    const response = await fetch(apiUrl);
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    
+                    // Panggil API
+                    const response = await fetch(`/api/threads?url=${encodeURIComponent(threadsUrl)}`);
                     const data = await response.json();
                     
-                    if (!data.success) {
-                        // Jika masih ada percobaan tersisa, coba lagi
-                        if (retryCount < maxRetries) {
-                            const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
-                            showRetryInfo(delay / 1000);
-                            
-                            retryTimeout = setTimeout(() => {
-                                getFileInfo(url, retryCount + 1);
-                            }, delay);
-                            
-                            return;
-                        }
-                        
-                        throw new Error(data.error || 'Gagal mengambil data setelah beberapa percobaan');
-                    }
-                    
-                    // Update UI dengan data file
-                    document.getElementById('fileName').textContent = data.data.name;
-                    document.getElementById('fileSize').textContent = data.data.size;
-                    document.getElementById('fileExtension').textContent = data.data.extension;
-                    document.getElementById('fileUploaded').textContent = data.data.uploaded;
-                    
-                    // Set download URL
-                    if (data.data.downloadUrl) {
-                        downloadButton.href = data.data.downloadUrl;
-                        downloadButton.setAttribute('data-url', data.data.downloadUrl);
-                        downloadButton.setAttribute('data-filename', data.data.name);
+                    if (data.success) {
+                        displayResult(data.data);
                     } else {
-                        // Jika tidak ada URL download, coba ekstrak dari data yang diberikan
-                        const exampleUrl = "https://download2269.mediafire.com/20r1881wjd7gm4OkrRyrFj1vsVAHgc0t6fkUFdCvWmV4enfaaBDJF1x4koQFUBMeq-UZZu3rVUE-xfUXkJgaCaBmcKm3kuUG0cC3sKSa7XT2dno3PS4JIyuiir407SuFQRDw203LN4FD7IEd5NOFfErdVqBwi6ikzeCjXhim9UE/iojnikfucf67q74/Base+Bot+Simpel.zip";
-                        downloadButton.href = exampleUrl;
-                        downloadButton.setAttribute('data-url', exampleUrl);
-                        downloadButton.setAttribute('data-filename', data.data.name);
+                        showError(data.error || 'Gagal mengambil data dari Threads');
                     }
-                    
-                    // Tampilkan informasi file dan section download
-                    fileInfo.style.display = 'block';
-                    downloadSection.style.display = 'block';
-                    successMessage.style.display = 'block';
-                    successMessage.textContent = 'Berhasil mengambil data dari MediaFire!';
-                    
                 } catch (error) {
-                    console.error('Error fetching MediaFire data:', error);
-                    errorMessage.textContent = error.message || 'Gagal mengambil data dari MediaFire. Pastikan URL valid dan coba lagi.';
-                    errorMessage.style.display = 'block';
+                    showError('Terjadi kesalahan: ' + error.message);
                 } finally {
-                    loadingIndicator.style.display = 'none';
-                    progressBar.style.display = 'none';
-                    currentRetryCount = retryCount;
+                    hideLoading();
                 }
+            });
+            
+            function isValidThreadsUrl(url) {
+                return url.includes('threads.net') || url.includes('threads.com');
             }
             
-            // Event listener untuk tombol pencarian
-            searchButton.addEventListener('click', function() {
-                const url = mediafireUrlInput.value.trim();
-                
-                // Hentikan retry sebelumnya jika ada
-                if (retryTimeout) {
-                    clearTimeout(retryTimeout);
-                    retryTimeout = null;
-                }
-                
-                if (!isValidMediaFireUrl(url)) {
-                    errorMessage.textContent = 'URL tidak valid. Pastikan URL berasal dari MediaFire.';
-                    errorMessage.style.display = 'block';
-                    fileInfo.style.display = 'none';
-                    downloadSection.style.display = 'none';
-                    loadingIndicator.style.display = 'none';
-                    return;
-                }
-                
-                getFileInfo(url, 0);
-            });
+            function showLoading() {
+                loadingElement.style.display = 'block';
+            }
             
-            // Event listener untuk tombol download
-            downloadButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                const downloadUrl = this.getAttribute('data-url');
-                
-                if (downloadUrl) {
-                    window.open(downloadUrl, '_blank');
-                } else {
-                    errorMessage.textContent = 'URL download tidak tersedia.';
-                    errorMessage.style.display = 'block';
-                }
-            });
+            function hideLoading() {
+                loadingElement.style.display = 'none';
+            }
             
-            // Event listener untuk tombol salin link
-            copyLinkBtn.addEventListener('click', function() {
-                const downloadUrl = downloadButton.getAttribute('data-url');
-                const url = mediafireUrlInput.value.trim();
+            function showError(message) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+            
+            function hideError() {
+                errorElement.style.display = 'none';
+            }
+            
+            function showResult() {
+                resultElement.style.display = 'block';
+            }
+            
+            function hideResult() {
+                resultElement.style.display = 'none';
+            }
+            
+            function displayResult(data) {
+                // Tampilkan info postingan
+                const post = data.post_detail;
+                const user = data.user;
                 
-                if (!downloadUrl && !url) {
-                    errorMessage.textContent = 'Tidak ada link yang dapat disalin.';
-                    errorMessage.style.display = 'block';
-                    return;
-                }
+                postInfoElement.innerHTML = `
+                    <p><strong>Username:</strong> @${user.username}</p>
+                    <p><strong>Nama:</strong> ${user.full_name}</p>
+                    <p><strong>Caption:</strong> ${post.caption_text || 'Tidak ada caption'}</p>
+                    <p><strong>Diposting:</strong> ${post.publish_time}</p>
+                    <p><strong>Jumlah like:</strong> ${post.like_count}</p>
+                `;
                 
-                navigator.clipboard.writeText(downloadUrl || url)
-                    .then(() => {
-                        alert('Link berhasil disalin!');
-                    })
-                    .catch(() => {
-                        alert('Gagal menyalin link');
+                // Tampilkan media
+                mediaContainerElement.innerHTML = '';
+                
+                if (post.media_list && post.media_list.length > 0) {
+                    post.media_list.forEach(media => {
+                        const mediaItem = document.createElement('div');
+                        mediaItem.className = 'media-item';
+                        
+                        if (media.media_type === 2) { // Video
+                            mediaItem.innerHTML = `
+                                <video controls>
+                                    <source src="${media.url}" type="video/mp4">
+                                    Browser Anda tidak mendukung tag video.
+                                </video>
+                                <a href="${media.url}" download class="download-btn">Download Video</a>
+                            `;
+                        } else { // Gambar
+                            mediaItem.innerHTML = `
+                                <img src="${media.url || media.cover_image}" alt="Threads image">
+                                <a href="${media.url || media.cover_image}" download class="download-btn">Download Gambar</a>
+                            `;
+                        }
+                        
+                        mediaContainerElement.appendChild(mediaItem);
                     });
-            });
-            
-            // Event listener untuk tombol bagikan
-            shareBtn.addEventListener('click', function() {
-                const downloadUrl = downloadButton.getAttribute('data-url');
-                const url = mediafireUrlInput.value.trim();
-                
-                if (!downloadUrl && !url) {
-                    errorMessage.textContent = 'Tidak ada link yang dapat dibagikan.';
-                    errorMessage.style.display = 'block';
-                    return;
-                }
-                
-                if (navigator.share) {
-                    navigator.share({
-                        title: 'MediaFire Download Link',
-                        text: 'Check out this file from MediaFire',
-                        url: downloadUrl || url,
-                    })
-                    .then(() => console.log('Berhasil dibagikan'))
-                    .catch((error) => console.log('Error sharing', error));
                 } else {
-                    alert('Fitur berbagi tidak didukung di browser ini. Silakan salin link secara manual.');
+                    mediaContainerElement.innerHTML = '<p>Tidak ada media yang ditemukan</p>';
                 }
-            });
-            
-            // Event listener untuk tombol simpan
-            saveBtn.addEventListener('click', function() {
-                alert('Fitur penyimpanan akan segera hadir!');
-            });
-            
-            // Event listener untuk tekan Enter pada input
-            mediafireUrlInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    searchButton.click();
-                }
-            });
-            
-            // Contoh penggunaan langsung
-            mediafireUrlInput.value = 'https://www.mediafire.com/file/vj3al1c98u2zdr6/Terakomari_-_MD.zip/file';
+                
+                showResult();
+            }
         });
     </script>
 </body>
