@@ -31,7 +31,7 @@ export default async function handler(request, response) {
 
   try {
     // Validate MediaFire URL
-    if (!url.includes('mediafire.com') || (!url.includes('/file/') && !url.includes('/download/') && !url.includes('/view/'))) {
+    if (!url.includes('mediafire.com') || (!url.includes('/file/') && !url.includes('/download/'))) {
       return response.status(400).json({ success: false, error: 'URL tidak valid. Pastikan URL berasal dari MediaFire.' });
     }
 
@@ -61,91 +61,7 @@ export default async function handler(request, response) {
     const dom = new JSDOM(html);
     const document = dom.window.document;
 
-    // Check if this is a view URL (contains '/view/')
-    const isViewUrl = url.includes('/view/');
-
-    // For view URLs, use different selectors
-    if (isViewUrl) {
-      // Extract file name from the specific element for view pages
-      const fileNameElem = document.querySelector('a[onclick="aQn()"] span#image_filename');
-      const fileName = fileNameElem ? fileNameElem.textContent.trim() : 'Unknown';
-
-      // Extract file size - need to find the correct selector for view pages
-      let fileSize = 'Unknown';
-      const detailsElements = document.querySelectorAll('.details__label, .info__label, .label');
-      for (let elem of detailsElements) {
-        if (elem.textContent.includes('Size') || elem.textContent.includes('Ukuran')) {
-          const sizeValue = elem.nextElementSibling;
-          if (sizeValue) {
-            fileSize = sizeValue.textContent.trim();
-            break;
-          }
-        }
-      }
-
-      // Fallback for size if not found with the above method
-      if (fileSize === 'Unknown') {
-        const sizeElem = document.querySelector('.file__size, .size__value, .info__size');
-        if (sizeElem) {
-          fileSize = sizeElem.textContent.trim();
-        }
-      }
-
-      // Extract view URL for images
-      let viewUrl = '';
-      const viewerImg = document.querySelector('#viewer img');
-      if (viewerImg) {
-        viewUrl = viewerImg.getAttribute('src');
-        // Ensure the URL has the correct protocol
-        if (viewUrl && viewUrl.startsWith('//')) {
-          viewUrl = 'https:' + viewUrl;
-        }
-      }
-      
-      // Alternative method to extract view URL if not found
-      if (!viewUrl || viewUrl.includes('clear1x1.gif')) {
-        const imgElements = document.querySelectorAll('img');
-        for (let img of imgElements) {
-          const src = img.getAttribute('src');
-          if (src && src.includes('convkey') && !src.includes('clear1x1.gif')) {
-            viewUrl = src;
-            // Ensure the URL has the correct protocol
-            if (viewUrl.startsWith('//')) {
-              viewUrl = 'https:' + viewUrl;
-            }
-            break;
-          }
-        }
-      }
-
-      // Additional fallback - try to find any image that might be the preview
-      if (!viewUrl || viewUrl.includes('clear1x1.gif')) {
-        const possibleImages = document.querySelectorAll('img[src*="mediafire.com"]');
-        for (let img of possibleImages) {
-          const src = img.getAttribute('src');
-          if (src && !src.includes('clear1x1.gif') && (src.includes('convkey') || src.includes('/image/'))) {
-            viewUrl = src;
-            // Ensure the URL has the correct protocol
-            if (viewUrl.startsWith('//')) {
-              viewUrl = 'https:' + viewUrl;
-            }
-            break;
-          }
-        }
-      }
-
-      return response.status(200).json({
-        success: true,
-        data: {
-          name: fileName,
-          size: fileSize,
-          viewUrl: viewUrl,
-          isView: true
-        }
-      });
-    }
-
-    // For regular file URLs, proceed with the original logic
+    // Extract file information
     const fileNameElem = document.querySelector('.dl-btn-label');
     const fileName = fileNameElem ? fileNameElem.textContent.trim() : 'Unknown';
 
@@ -184,8 +100,7 @@ export default async function handler(request, response) {
         size: fileSize,
         extension: fileExtension,
         uploaded: uploaded,
-        downloadUrl: downloadUrl,
-        isView: false
+        downloadUrl: downloadUrl
       }
     });
 
