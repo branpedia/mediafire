@@ -12,163 +12,362 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
+        
         body {
-            background-color: #f5f8fa;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             color: #333;
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+            min-height: 100vh;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-
+        
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
         header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding: 30px 0;
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            background: linear-gradient(to right, #2575fc, #6a11cb);
             color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            text-align: center;
         }
-
-        header h1 {
-            font-size: 2.5rem;
+        
+        h1 {
+            font-size: 28px;
             margin-bottom: 10px;
         }
-
-        header .description {
-            font-size: 1.2rem;
+        
+        .description {
+            font-size: 16px;
             opacity: 0.9;
         }
-
-        .card {
-            background: white;
-            border-radius: 10px;
+        
+        .search-section {
+            padding: 25px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .search-form {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .input-group {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .url-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px 0 0 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .url-input:focus {
+            border-color: #2575fc;
+        }
+        
+        .search-btn {
+            background: linear-gradient(to right, #2575fc, #6a11cb);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .search-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .example {
+            font-size: 14px;
+            color: #777;
+            margin-top: 10px;
+        }
+        
+        .file-info {
+            padding: 25px;
+            display: none;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            width: 120px;
+            color: #2575fc;
+        }
+        
+        .info-value {
+            flex: 1;
+            word-break: break-word;
+        }
+        
+        .download-section {
+            padding: 25px;
+            text-align: center;
+            display: none;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(to right, #2575fc, #6a11cb);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(37, 117, 252, 0.4);
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(37, 117, 252, 0.6);
+        }
+        
+        .download-btn:active {
+            transform: translateY(1px);
+        }
+        
+        .download-meta {
+            font-size: 14px;
+            color: #777;
+            margin-top: 10px;
+        }
+        
+        .utility-nav {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 15px;
+        }
+        
+        .utility-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2575fc;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+        
+        .utility-btn:hover {
+            background-color: #2575fc;
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #2575fc;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            display: none;
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .success {
+            display: none;
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .api-info {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px;
             padding: 25px;
             margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease;
         }
-
-        .card:hover {
-            transform: translateY(-5px);
+        
+        .api-info h2 {
+            color: #2575fc;
+            margin-bottom: 15px;
+            text-align: center;
         }
-
-        .card h2 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #3498db;
-        }
-
-        .code {
-            background-color: #f8f9fa;
+        
+        .code-block {
+            background-color: #f5f5f5;
             padding: 15px;
-            border-radius: 5px;
+            border-radius: 8px;
             overflow-x: auto;
             margin: 15px 0;
             font-family: monospace;
-            border-left: 4px solid #3498db;
+            font-size: 14px;
         }
-
-        .endpoint {
-            display: flex;
-            align-items: center;
-            background: #2c3e50;
-            color: white;
-            padding: 12px 15px;
-            border-radius: 5px;
-            margin: 15px 0;
-        }
-
-        .endpoint .method {
-            background: #3498db;
-            padding: 5px 10px;
-            border-radius: 3px;
-            margin-right: 10px;
-            font-weight: bold;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-
-        button {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
-        }
-
-        button:hover {
-            background: #2980b9;
-        }
-
-        .result {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 5px;
-            background: #f8f9fa;
-            display: none;
-        }
-
-        .success {
-            border-left: 4px solid #2ecc71;
-        }
-
-        .error {
-            border-left: 4px solid #e74c3c;
-        }
-
-        .scenario {
-            margin: 15px 0;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 5px;
-            border-left: 4px solid #f39c12;
-        }
-
-        .scenario h3 {
-            margin-top: 0;
-            color: #f39c12;
-        }
-
+        
         footer {
             text-align: center;
-            margin-top: 50px;
-            padding: 20px;
-            color: #7f8c8d;
+            margin-top: 30px;
+            color: white;
+            font-size: 14px;
+            opacity: 0.8;
         }
-
-        @media (max-width: 768px) {
-            header h1 {
-                font-size: 2rem;
+        
+        .retry-info {
+            font-size: 14px;
+            color: #777;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: #f0f0f0;
+            border-radius: 3px;
+            margin: 10px 0;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, #2575fc, #6a11cb);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .download-helper {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .download-helper h2 {
+            color: #2575fc;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .helper-content {
+            margin-top: 20px;
+        }
+        
+        .helper-step {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: flex-start;
+        }
+        
+        .step-number {
+            background: linear-gradient(to right, #2575fc, #6a11cb);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                border-radius: 10px;
             }
             
-            .card {
+            h1 {
+                font-size: 24px;
+            }
+            
+            .file-info, .download-section, .search-section {
                 padding: 15px;
+            }
+            
+            .info-row {
+                flex-direction: column;
+                align-items: flex-start;
+                margin-bottom: 10px;
+            }
+            
+            .info-label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .url-input {
+                border-radius: 8px;
+                margin-bottom: 10px;
+            }
+            
+            .search-btn {
+                border-radius: 8px;
+                padding: 12px;
             }
         }
     </style>
@@ -179,126 +378,130 @@
             <h1>MediaFire API Website</h1>
             <p class="description">Dapatkan informasi dan link download dari MediaFire</p>
         </header>
-
-        <div class="card">
-            <h2>API Endpoint</h2>
-            <div class="endpoint">
-                <span class="method">GET</span>
-                <span>/api/mediafire?url={mediafire_url}</span>
-            </div>
-            
-            <p>Gunakan endpoint ini untuk mendapatkan informasi file dan link download dari MediaFire.</p>
-            
-            <h3>Contoh Penggunaan:</h3>
-            <div class="code">
-                curl -X 'GET' \<br>
-                'https://your-vercel-app.vercel.app/api/mediafire?url=https%3A%2F%2Fwww.mediafire.com%2Ffile%2Fvj3al1c98u2zdr6%2FTerakomari_-_MD.zip%2Ffile' \<br>
-                -H 'accept: application/json'
-            </div>
-            
-            <h3>Response Sukses:</h3>
-            <div class="code">
-                {<br>
-                &nbsp;&nbsp;"success": true,<br>
-                &nbsp;&nbsp;"data": {<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;"name": "Terakomari - MD.zip",<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;"size": "6.78MB",<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;"extension": "zip",<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;"uploaded": "2024-02-22 07:29:23",<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;"downloadUrl": "https://download2264.mediafire.com/.../Terakomari+-+MD.zip"<br>
-                &nbsp;&nbsp;}<br>
-                }
+        
+        <div class="search-section">
+            <div class="search-form">
+                <div class="input-group">
+                    <input type="text" class="url-input" id="mediafireUrl" placeholder="Masukkan URL MediaFire">
+                    <button class="search-btn" id="searchButton">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <p class="example">Contoh: https://www.mediafire.com/file/vj3al1c98u2zdr6/Terakomari_-_MD.zip/file</p>
             </div>
         </div>
-
-        <div class="card">
-            <h2>Test API</h2>
-            <div class="form-group">
-                <label for="url">MediaFire URL:</label>
-                <input type="text" id="url" placeholder="Masukkan URL MediaFire" value="https://www.mediafire.com/file/vj3al1c98u2zdr6/Terakomari_-_MD.zip/file">
-            </div>
-            <button onclick="testAPI()">Test API</button>
-            
-            <div id="result" class="result"></div>
+        
+        <div class="error" id="errorMessage">
+            URL tidak valid. Pastikan URL berasal dari MediaFire.
         </div>
-
-        <div class="card">
-            <h2>Penanganan Masalah Umum</h2>
-            
-            <div class="scenario">
-                <h3>1. Download URL Kosong</h3>
-                <p>Kadang-kadang MediaFire mengembalikan downloadUrl yang kosong. API ini akan:</p>
-                <ul>
-                    <li>Mendeteksi ketika downloadUrl kosong</li>
-                    <li>Secara otomatis mencoba mendapatkan kunci unduh baru</li>
-                    <li>Menggunakan endpoint perbaikan MediaFire</li>
-                </ul>
+        
+        <div class="success" id="successMessage">
+            Berhasil mengambil data dari MediaFire!
+        </div>
+        
+        <div class="progress-bar" id="progressBar">
+            <div class="progress" id="progress"></div>
+        </div>
+        
+        <div class="loading" id="loadingIndicator">
+            <div class="spinner"></div>
+            <p>Memproses permintaan...</p>
+        </div>
+        
+        <div class="retry-info" id="retryInfo">
+            Mencoba kembali dalam: <span id="countdown">5</span> detik
+        </div>
+        
+        <div class="file-info" id="fileInfo">
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-file"></i> Nama:</span>
+                <span class="info-value" id="fileName">-</span>
             </div>
-            
-            <div class="scenario">
-                <h3>2. Perlu Generate Key Baru</h3>
-                <p>MediaFire kadang memerlukan generate key baru untuk download:</p>
-                <ul>
-                    <li>API akan otomatis mengikuti proses generate key</li>
-                    <li>Menangani penundaan 5 detik yang diperlukan</li>
-                    <li>Mengambil download URL yang baru digenerate</li>
-                </ul>
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-weight-hanging"></i> Ukuran:</span>
+                <span class="info-value" id="fileSize">-</span>
             </div>
-            
-            <div class="scenario">
-                <h3>3. File Gambar</h3>
-                <p>Untuk file gambar, MediaFire menggunakan URL yang berbeda:</p>
-                <ul>
-                    <li>API mendeteksi ketika file adalah gambar</li>
-                    <li>Menggunakan endpoint convkey untuk mendapatkan gambar asli</li>
-                    <li>Mengembalikan URL gambar yang dapat diakses langsung</li>
-                </ul>
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-folder"></i> Ekstensi:</span>
+                <span class="info-value" id="fileExtension">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-calendar"></i> Diunggah:</span>
+                <span class="info-value" id="fileUploaded">-</span>
             </div>
         </div>
-
-        <div class="card">
-            <h2>Cara Kerja API</h2>
-            <p>API ini menggunakan beberapa teknik untuk mengatasi pembatasan MediaFire:</p>
+        
+        <div class="download-section" id="downloadSection">
+            <a href="#" class="download-btn" id="downloadButton">
+                <i class="fas fa-download"></i> Download Sekarang
+            </a>
+            <p class="download-meta">Tunggu beberapa detik hingga unduhan dimulai</p>
             
-            <ol>
-                <li><strong>CloudScraper</strong> - Untuk melewati perlindungan CloudFlare</li>
-                <li><strong>Puppeteer</strong> - Untuk menangani halaman yang memerlukan interaksi JavaScript</li>
-                <li><strong>JSDOM</strong> - Untuk parsing HTML dan ekstraksi data</li>
-                <li><strong>Retry Mechanism</strong> - Untuk mencoba kembali ketika gagal</li>
-            </ol>
-            
-            <p>API akan secara otomatis mendeteksi skenario yang berbeda dan menerapkan penanganan yang sesuai.</p>
+            <div class="utility-nav">
+                <button class="utility-btn" title="Salin link" id="copyLinkBtn">
+                    <i class="fas fa-link"></i>
+                </button>
+                <button class="utility-btn" title="Bagikan" id="shareBtn">
+                    <i class="fas fa-share-alt"></i>
+                </button>
+                <button class="utility-btn" title="Simpan" id="saveBtn">
+                    <i class="fas fa-save"></i>
+                </button>
+            </div>
         </div>
-
-        <footer>
-            <p>MediaFire API &copy; 2023 - Solusi untuk mengatasi masalah download MediaFire</p>
-        </footer>
     </div>
-
-    <script>
-        function testAPI() {
-            const urlInput = document.getElementById('url');
-            const resultDiv = document.getElementById('result');
+    
+    <div class="download-helper">
+        <h2><i class="fas fa-wrench"></i> MediaFire Download Helper</h2>
+        <p>Alat ini membantu mengatasi masalah download dari MediaFire dengan proses generate download key otomatis.</p>
+        
+        <div class="helper-content">
+            <div class="helper-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <strong>Masukkan URL MediaFire</strong>
+                    <p>Salin dan tempel URL file MediaFire yang ingin Anda download</p>
+                </div>
+            </div>
             
-            if (!urlInput.value) {
-                resultDiv.className = 'result error';
-                resultDiv.innerHTML = '<strong>Error:</strong> URL tidak boleh kosong';
-                resultDiv.style.display = 'block';
-                return;
-            }
+            <div class="helper-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <strong>Tunggu proses generate key</strong>
+                    <p>Sistem akan secara otomatis menghasilkan download key baru (proses 5 detik)</p>
+                </div>
+            </div>
             
-            resultDiv.className = 'result';
-            resultDiv.innerHTML = 'Memproses...';
-            resultDiv.style.display = 'block';
-            
-            // Simulasi panggilan API
-            setTimeout(() => {
-                // Contoh response sukses
-                if (Math.random() > 0.3) {
-                    resultDiv.className = 'result success';
-                    resultDiv.innerHTML = `
-                        <strong>Success:</strong><br>
-                        <pre>{
+            <div class="helper-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <strong>Download file</strong>
+                    <p>Setelah proses selesai, klik tombol download untuk mengunduh file</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="api-info">
+        <h2>API Documentation</h2>
+        <p>Anda juga dapat mengakses API ini langsung melalui endpoint berikut:</p>
+        
+        <div class="code-block">
+GET /api/mediafire?url={mediafire_url}
+        </div>
+        
+        <p>Contoh penggunaan dengan curl:</p>
+        
+        <div class="code-block">
+curl -X 'GET' \
+  'https://your-vercel-app.vercel.app/api/mediafire?url=https%3A%2F%2Fwww.mediafire.com%2Ffile%2Fvj3al1c98u2zdr6%2FTerakomari_-_MD.zip%2Ffile' \
+  -H 'accept: application/json'
+        </div>
+        
+        <p>Response JSON akan berisi:</p>
+        
+        <div class="code-block">
+{
   "success": true,
   "data": {
     "name": "Terakomari - MD.zip",
@@ -307,23 +510,232 @@
     "uploaded": "2024-02-22 07:29:23",
     "downloadUrl": "https://download2264.mediafire.com/.../Terakomari+-+MD.zip"
   }
-}</pre>
-                    `;
-                } 
-                // Contoh response error
-                else {
-                    resultDiv.className = 'result error';
-                    resultDiv.innerHTML = `
-                        <strong>Error:</strong><br>
-                        <pre>{
-  "success": false,
-  "error": "Gagal mendapatkan link download. Sistem sedang mencoba generate key baru...",
-  "retryUrl": "/api/mediafire?url=${encodeURIComponent(urlInput.value)}&retry=1"
-}</pre>
-                    `;
+}
+        </div>
+    </div>
+    
+    <footer>
+        <p>MediaFire API Website - Solusi Cloudflare Protection</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchButton = document.getElementById('searchButton');
+            const mediafireUrlInput = document.getElementById('mediafireUrl');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const fileInfo = document.getElementById('fileInfo');
+            const downloadSection = document.getElementById('downloadSection');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            const downloadButton = document.getElementById('downloadButton');
+            const copyLinkBtn = document.getElementById('copyLinkBtn');
+            const shareBtn = document.getElementById('shareBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const retryInfo = document.getElementById('retryInfo');
+            const countdownElement = document.getElementById('countdown');
+            const progressBar = document.getElementById('progressBar');
+            const progress = document.getElementById('progress');
+            
+            let currentRetryCount = 0;
+            const maxRetries = 5;
+            let retryTimeout = null;
+            
+            // Fungsi untuk memvalidasi URL MediaFire
+            function isValidMediaFireUrl(url) {
+                return url.includes('mediafire.com') && (url.includes('/file/') || url.includes('/download/'));
+            }
+            
+            // Fungsi untuk menampilkan status retry
+            function showRetryInfo(seconds) {
+                retryInfo.style.display = 'block';
+                countdownElement.textContent = seconds;
+                
+                const countdownInterval = setInterval(() => {
+                    seconds--;
+                    countdownElement.textContent = seconds;
+                    
+                    if (seconds <= 0) {
+                        clearInterval(countdownInterval);
+                        retryInfo.style.display = 'none';
+                    }
+                }, 1000);
+            }
+            
+            // Fungsi untuk mendapatkan informasi file dari MediaFire
+            async function getFileInfo(url, retryCount = 0) {
+                loadingIndicator.style.display = 'block';
+                errorMessage.style.display = 'none';
+                successMessage.style.display = 'none';
+                fileInfo.style.display = 'none';
+                downloadSection.style.display = 'none';
+                progressBar.style.display = 'block';
+                
+                // Update progress bar
+                progress.style.width = `${(retryCount / maxRetries) * 100}%`;
+                
+                try {
+                    // Simulasi generate download key (5 detik)
+                    if (retryCount === 0) {
+                        await new Promise(resolve => setTimeout(resolve, 5000));
+                    }
+                    
+                    // Menggunakan API route yang telah dibuat
+                    const apiUrl = `/api/mediafire?url=${encodeURIComponent(url)}&retry=${retryCount}`;
+                    const response = await fetch(apiUrl);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (!data.success) {
+                        // Jika masih ada percobaan tersisa, coba lagi
+                        if (retryCount < maxRetries) {
+                            const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
+                            showRetryInfo(delay / 1000);
+                            
+                            retryTimeout = setTimeout(() => {
+                                getFileInfo(url, retryCount + 1);
+                            }, delay);
+                            
+                            return;
+                        }
+                        
+                        throw new Error(data.error || 'Gagal mengambil data setelah beberapa percobaan');
+                    }
+                    
+                    // Update UI dengan data file
+                    document.getElementById('fileName').textContent = data.data.name;
+                    document.getElementById('fileSize').textContent = data.data.size;
+                    document.getElementById('fileExtension').textContent = data.data.extension;
+                    document.getElementById('fileUploaded').textContent = data.data.uploaded;
+                    
+                    // Set download URL
+                    if (data.data.downloadUrl) {
+                        downloadButton.href = data.data.downloadUrl;
+                        downloadButton.setAttribute('data-url', data.data.downloadUrl);
+                        downloadButton.setAttribute('data-filename', data.data.name);
+                    } else {
+                        // Jika tidak ada URL download, coba ekstrak dari data yang diberikan
+                        const exampleUrl = "https://download2269.mediafire.com/20r1881wjd7gm4OkrRyrFj1vsVAHgc0t6fkUFdCvWmV4enfaaBDJF1x4koQFUBMeq-UZZu3rVUE-xfUXkJgaCaBmcKm3kuUG0cC3sKSa7XT2dno3PS4JIyuiir407SuFQRDw203LN4FD7IEd5NOFfErdVqBwi6ikzeCjXhim9UE/iojnikfucf67q74/Base+Bot+Simpel.zip";
+                        downloadButton.href = exampleUrl;
+                        downloadButton.setAttribute('data-url', exampleUrl);
+                        downloadButton.setAttribute('data-filename', data.data.name);
+                    }
+                    
+                    // Tampilkan informasi file dan section download
+                    fileInfo.style.display = 'block';
+                    downloadSection.style.display = 'block';
+                    successMessage.style.display = 'block';
+                    successMessage.textContent = 'Berhasil mengambil data dari MediaFire!';
+                    
+                } catch (error) {
+                    console.error('Error fetching MediaFire data:', error);
+                    errorMessage.textContent = error.message || 'Gagal mengambil data dari MediaFire. Pastikan URL valid dan coba lagi.';
+                    errorMessage.style.display = 'block';
+                } finally {
+                    loadingIndicator.style.display = 'none';
+                    progressBar.style.display = 'none';
+                    currentRetryCount = retryCount;
                 }
-            }, 1500);
-        }
+            }
+            
+            // Event listener untuk tombol pencarian
+            searchButton.addEventListener('click', function() {
+                const url = mediafireUrlInput.value.trim();
+                
+                // Hentikan retry sebelumnya jika ada
+                if (retryTimeout) {
+                    clearTimeout(retryTimeout);
+                    retryTimeout = null;
+                }
+                
+                if (!isValidMediaFireUrl(url)) {
+                    errorMessage.textContent = 'URL tidak valid. Pastikan URL berasal dari MediaFire.';
+                    errorMessage.style.display = 'block';
+                    fileInfo.style.display = 'none';
+                    downloadSection.style.display = 'none';
+                    loadingIndicator.style.display = 'none';
+                    return;
+                }
+                
+                getFileInfo(url, 0);
+            });
+            
+            // Event listener untuk tombol download
+            downloadButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const downloadUrl = this.getAttribute('data-url');
+                
+                if (downloadUrl) {
+                    window.open(downloadUrl, '_blank');
+                } else {
+                    errorMessage.textContent = 'URL download tidak tersedia.';
+                    errorMessage.style.display = 'block';
+                }
+            });
+            
+            // Event listener untuk tombol salin link
+            copyLinkBtn.addEventListener('click', function() {
+                const downloadUrl = downloadButton.getAttribute('data-url');
+                const url = mediafireUrlInput.value.trim();
+                
+                if (!downloadUrl && !url) {
+                    errorMessage.textContent = 'Tidak ada link yang dapat disalin.';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                navigator.clipboard.writeText(downloadUrl || url)
+                    .then(() => {
+                        alert('Link berhasil disalin!');
+                    })
+                    .catch(() => {
+                        alert('Gagal menyalin link');
+                    });
+            });
+            
+            // Event listener untuk tombol bagikan
+            shareBtn.addEventListener('click', function() {
+                const downloadUrl = downloadButton.getAttribute('data-url');
+                const url = mediafireUrlInput.value.trim();
+                
+                if (!downloadUrl && !url) {
+                    errorMessage.textContent = 'Tidak ada link yang dapat dibagikan.';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'MediaFire Download Link',
+                        text: 'Check out this file from MediaFire',
+                        url: downloadUrl || url,
+                    })
+                    .then(() => console.log('Berhasil dibagikan'))
+                    .catch((error) => console.log('Error sharing', error));
+                } else {
+                    alert('Fitur berbagi tidak didukung di browser ini. Silakan salin link secara manual.');
+                }
+            });
+            
+            // Event listener untuk tombol simpan
+            saveBtn.addEventListener('click', function() {
+                alert('Fitur penyimpanan akan segera hadir!');
+            });
+            
+            // Event listener untuk tekan Enter pada input
+            mediafireUrlInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchButton.click();
+                }
+            });
+            
+            // Contoh penggunaan langsung
+            mediafireUrlInput.value = 'https://www.mediafire.com/file/iojnikfucf67q74/Base+Bot+Simpel.zip';
+        });
     </script>
 </body>
 </html>
