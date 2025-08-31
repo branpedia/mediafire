@@ -31,7 +31,7 @@ export default async function handler(request, response) {
 
   try {
     // Validate MediaFire URL
-    if (!url.includes('mediafire.com') || (!url.includes('/file/') && !url.includes('/download/'))) {
+    if (!url.includes('mediafire.com') || (!url.includes('/file/') && !url.includes('/download/') && !url.includes('/view/'))) {
       return response.status(400).json({ success: false, error: 'URL tidak valid. Pastikan URL berasal dari MediaFire.' });
     }
 
@@ -61,6 +61,9 @@ export default async function handler(request, response) {
     const dom = new JSDOM(html);
     const document = dom.window.document;
 
+    // Check if this is a view URL (contains '/view/')
+    const isViewUrl = url.includes('/view/');
+
     // Extract file information
     const fileNameElem = document.querySelector('.dl-btn-label');
     const fileName = fileNameElem ? fileNameElem.textContent.trim() : 'Unknown';
@@ -68,32 +71,41 @@ export default async function handler(request, response) {
     const fileSizeElem = document.querySelector('.details li:first-child span');
     const fileSize = fileSizeElem ? fileSizeElem.textContent.trim() : 'Unknown';
 
-    const uploadedElem = document.querySelector('.details li:nth-child(2) span');
-    const uploaded = uploadedElem ? uploadedElem.textContent.trim() : 'Unknown';
-
-    // Check if file is an image
-    const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(fileName);
-    let viewUrl = '';
-
-    // Extract view URL for images
-    if (isImage) {
+    // For view URLs, return only name and size
+    if (isViewUrl) {
+      // Extract view URL for images
+      let viewUrl = '';
       const viewerImg = document.querySelector('#viewer img');
       if (viewerImg) {
         viewUrl = viewerImg.getAttribute('src');
       }
       
-      // If not found via selector, try alternative method
+      // Alternative method to extract view URL if not found
       if (!viewUrl) {
         const imgElements = document.querySelectorAll('img');
         for (let img of imgElements) {
           const src = img.getAttribute('src');
-          if (src && src.includes('convkey') && src.includes(fileName.replace(/\.[^/.]+$/, ""))) {
+          if (src && src.includes('convkey')) {
             viewUrl = src;
             break;
           }
         }
       }
+
+      return response.status(200).json({
+        success: true,
+        data: {
+          name: fileName,
+          size: fileSize,
+          viewUrl: viewUrl,
+          isView: true
+        }
+      });
     }
+
+    // For regular file URLs, proceed with the original logic
+    const uploadedElem = document.querySelector('.details li:nth-child(2) span');
+    const uploaded = uploadedElem ? uploadedElem.textContent.trim() : 'Unknown';
 
     // Extract download URL
     const downloadButton = document.querySelector('#downloadButton');
@@ -125,8 +137,7 @@ export default async function handler(request, response) {
         extension: fileExtension,
         uploaded: uploaded,
         downloadUrl: downloadUrl,
-        viewUrl: viewUrl,    // URL untuk melihat gambar
-        isImage: isImage     // Flag apakah file adalah gambar
+        isView: false
       }
     });
 
