@@ -71,6 +71,30 @@ export default async function handler(request, response) {
     const uploadedElem = document.querySelector('.details li:nth-child(2) span');
     const uploaded = uploadedElem ? uploadedElem.textContent.trim() : 'Unknown';
 
+    // Check if file is an image
+    const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(fileName);
+    let viewUrl = '';
+
+    // Extract view URL for images
+    if (isImage) {
+      const viewerImg = document.querySelector('#viewer img');
+      if (viewerImg) {
+        viewUrl = viewerImg.getAttribute('src');
+      }
+      
+      // If not found via selector, try alternative method
+      if (!viewUrl) {
+        const imgElements = document.querySelectorAll('img');
+        for (let img of imgElements) {
+          const src = img.getAttribute('src');
+          if (src && src.includes('convkey') && src.includes(fileName.replace(/\.[^/.]+$/, ""))) {
+            viewUrl = src;
+            break;
+          }
+        }
+      }
+    }
+
     // Extract download URL
     const downloadButton = document.querySelector('#downloadButton');
     let downloadUrl = '';
@@ -100,7 +124,9 @@ export default async function handler(request, response) {
         size: fileSize,
         extension: fileExtension,
         uploaded: uploaded,
-        downloadUrl: downloadUrl
+        downloadUrl: downloadUrl,
+        viewUrl: viewUrl,    // URL untuk melihat gambar
+        isImage: isImage     // Flag apakah file adalah gambar
       }
     });
 
