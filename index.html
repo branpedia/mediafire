@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediaFire API Website</title>
+    <title>MediaFire & Pinterest Downloader</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -29,7 +29,7 @@
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             width: 100%;
-            max-width: 600px;
+            max-width: 800px;
             overflow: hidden;
             margin-bottom: 30px;
         }
@@ -51,9 +51,39 @@
             opacity: 0.9;
         }
         
-        .search-section {
+        .tabs {
+            display: flex;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .tab.active {
+            background-color: white;
+            border-bottom: 3px solid #2575fc;
+            color: #2575fc;
+        }
+        
+        .tab-content {
+            display: none;
             padding: 25px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .search-section {
             border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
         }
         
         .search-form {
@@ -102,9 +132,8 @@
         }
         
         .file-info {
-            padding: 25px;
+            padding: 15px 0;
             display: none;
-            border-bottom: 1px solid #eee;
         }
         
         .info-row {
@@ -125,7 +154,7 @@
         }
         
         .download-section {
-            padding: 25px;
+            padding: 20px 0;
             text-align: center;
             display: none;
         }
@@ -234,7 +263,7 @@
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             width: 100%;
-            max-width: 600px;
+            max-width: 800px;
             padding: 25px;
             margin-bottom: 30px;
         }
@@ -293,7 +322,7 @@
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             width: 100%;
-            max-width: 600px;
+            max-width: 800px;
             padding: 25px;
             margin-bottom: 30px;
         }
@@ -332,7 +361,21 @@
             flex: 1;
         }
         
-        @media (max-width: 600px) {
+        .media-preview {
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+        
+        .media-preview img,
+        .media-preview video {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        @media (max-width: 800px) {
             .container {
                 border-radius: 10px;
             }
@@ -341,7 +384,7 @@
                 font-size: 24px;
             }
             
-            .file-info, .download-section, .search-section {
+            .tab-content {
                 padding: 15px;
             }
             
@@ -375,100 +418,155 @@
 <body>
     <div class="container">
         <header>
-            <h1>MediaFire API Website</h1>
-            <p class="description">Dapatkan informasi dan link download dari MediaFire</p>
+            <h1>MediaFire & Pinterest Downloader</h1>
+            <p class="description">Download file dari MediaFire dan media dari Pinterest</p>
         </header>
         
-        <div class="search-section">
-            <div class="search-form">
-                <div class="input-group">
-                    <input type="text" class="url-input" id="mediafireUrl" placeholder="Masukkan URL MediaFire">
-                    <button class="search-btn" id="searchButton">
-                        <i class="fas fa-search"></i>
+        <div class="tabs">
+            <div class="tab active" data-tab="mediafire">MediaFire</div>
+            <div class="tab" data-tab="pinterest">Pinterest</div>
+        </div>
+        
+        <!-- MediaFire Tab -->
+        <div class="tab-content active" id="mediafire-tab">
+            <div class="search-section">
+                <div class="search-form">
+                    <div class="input-group">
+                        <input type="text" class="url-input" id="mediafireUrl" placeholder="Masukkan URL MediaFire">
+                        <button class="search-btn" id="mediafireSearchButton">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <p class="example">Contoh: https://www.mediafire.com/file/vj3al1c98u2zdr6/Terakomari_-_MD.zip/file</p>
+                </div>
+            </div>
+            
+            <div class="error" id="mediafireErrorMessage">
+                URL tidak valid. Pastikan URL berasal dari MediaFire.
+            </div>
+            
+            <div class="success" id="mediafireSuccessMessage">
+                Berhasil mengambil data dari MediaFire!
+            </div>
+            
+            <div class="progress-bar" id="mediafireProgressBar">
+                <div class="progress" id="mediafireProgress"></div>
+            </div>
+            
+            <div class="loading" id="mediafireLoadingIndicator">
+                <div class="spinner"></div>
+                <p>Memproses permintaan...</p>
+            </div>
+            
+            <div class="retry-info" id="mediafireRetryInfo">
+                Mencoba kembali dalam: <span id="mediafireCountdown">5</span> detik
+            </div>
+            
+            <div class="file-info" id="mediafireFileInfo">
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-file"></i> Nama:</span>
+                    <span class="info-value" id="mediafireFileName">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-weight-hanging"></i> Ukuran:</span>
+                    <span class="info-value" id="mediafireFileSize">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-folder"></i> Ekstensi:</span>
+                    <span class="info-value" id="mediafireFileExtension">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-calendar"></i> Diunggah:</span>
+                    <span class="info-value" id="mediafireFileUploaded">-</span>
+                </div>
+            </div>
+            
+            <div class="download-section" id="mediafireDownloadSection">
+                <a href="#" class="download-btn" id="mediafireDownloadButton">
+                    <i class="fas fa-download"></i> Download Sekarang
+                </a>
+                <p class="download-meta">Tunggu beberapa detik hingga unduhan dimulai</p>
+                
+                <div class="utility-nav">
+                    <button class="utility-btn" title="Salin link" id="mediafireCopyLinkBtn">
+                        <i class="fas fa-link"></i>
+                    </button>
+                    <button class="utility-btn" title="Bagikan" id="mediafireShareBtn">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                    <button class="utility-btn" title="Simpan" id="mediafireSaveBtn">
+                        <i class="fas fa-save"></i>
                     </button>
                 </div>
-                <p class="example">Contoh: https://www.mediafire.com/file/vj3al1c98u2zdr6/Terakomari_-_MD.zip/file</p>
             </div>
         </div>
         
-        <div class="error" id="errorMessage">
-            URL tidak valid. Pastikan URL berasal dari MediaFire.
-        </div>
-        
-        <div class="success" id="successMessage">
-            Berhasil mengambil data dari MediaFire!
-        </div>
-        
-        <div class="progress-bar" id="progressBar">
-            <div class="progress" id="progress"></div>
-        </div>
-        
-        <div class="loading" id="loadingIndicator">
-            <div class="spinner"></div>
-            <p>Memproses permintaan...</p>
-        </div>
-        
-        <div class="retry-info" id="retryInfo">
-            Mencoba kembali dalam: <span id="countdown">5</span> detik
-        </div>
-        
-        <div class="file-info" id="fileInfo">
-            <div class="info-row">
-                <span class="info-label"><i class="fas fa-file"></i> Nama:</span>
-                <span class="info-value" id="fileName">-</span>
+        <!-- Pinterest Tab -->
+        <div class="tab-content" id="pinterest-tab">
+            <div class="search-section">
+                <div class="search-form">
+                    <div class="input-group">
+                        <input type="text" class="url-input" id="pinterestUrl" placeholder="Masukkan URL Pinterest">
+                        <button class="search-btn" id="pinterestSearchButton">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <p class="example">Contoh: https://pin.it/1sFZsJRDZ atau https://pinterest.com/pin/1234567890</p>
+                </div>
             </div>
-            <div class="info-row">
-                <span class="info-label"><i class="fas fa-weight-hanging"></i> Ukuran:</span>
-                <span class="info-value" id="fileSize">-</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label"><i class="fas fa-folder"></i> Ekstensi:</span>
-                <span class="info-value" id="fileExtension">-</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label"><i class="fas fa-calendar"></i> Diunggah:</span>
-                <span class="info-value" id="fileUploaded">-</span>
-            </div>
-        </div>
-        
-        <div class="download-section" id="downloadSection">
-            <a href="#" class="download-btn" id="downloadButton">
-                <i class="fas fa-download"></i> Download Sekarang
-            </a>
-            <p class="download-meta">Tunggu beberapa detik hingga unduhan dimulai</p>
             
-            <div class="utility-nav">
-                <button class="utility-btn" title="Salin link" id="copyLinkBtn">
-                    <i class="fas fa-link"></i>
-                </button>
-                <button class="utility-btn" title="Bagikan" id="shareBtn">
-                    <i class="fas fa-share-alt"></i>
-                </button>
-                <button class="utility-btn" title="Simpan" id="saveBtn">
-                    <i class="fas fa-save"></i>
-                </button>
+            <div class="error" id="pinterestErrorMessage">
+                URL tidak valid. Pastikan URL berasal dari Pinterest.
+            </div>
+            
+            <div class="success" id="pinterestSuccessMessage">
+                Berhasil mengambil media dari Pinterest!
+            </div>
+            
+            <div class="loading" id="pinterestLoadingIndicator">
+                <div class="spinner"></div>
+                <p id="pinterestLoadingText">Mengecek URL...</p>
+            </div>
+            
+            <div class="media-preview" id="pinterestMediaPreview">
+                <!-- Media akan ditampilkan di sini -->
+            </div>
+            
+            <div class="download-section" id="pinterestDownloadSection">
+                <a href="#" class="download-btn" id="pinterestDownloadButton">
+                    <i class="fas fa-download"></i> Download Media
+                </a>
+                
+                <div class="utility-nav">
+                    <button class="utility-btn" title="Salin link" id="pinterestCopyLinkBtn">
+                        <i class="fas fa-link"></i>
+                    </button>
+                    <button class="utility-btn" title="Bagikan" id="pinterestShareBtn">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
     
     <div class="download-helper">
-        <h2><i class="fas fa-wrench"></i> MediaFire Download Helper</h2>
-        <p>Alat ini membantu mengatasi masalah download dari MediaFire dengan proses generate download key otomatis.</p>
+        <h2><i class="fas fa-wrench"></i> Download Helper</h2>
+        <p>Alat ini membantu mengatasi masalah download dari MediaFire dan Pinterest dengan proses otomatis.</p>
         
         <div class="helper-content">
             <div class="helper-step">
                 <div class="step-number">1</div>
                 <div class="step-content">
-                    <strong>Masukkan URL MediaFire</strong>
-                    <p>Salin dan tempel URL file MediaFire yang ingin Anda download</p>
+                    <strong>Masukkan URL</strong>
+                    <p>Salin dan tempel URL file MediaFire atau pin Pinterest yang ingin Anda download</p>
                 </div>
             </div>
             
             <div class="helper-step">
                 <div class="step-number">2</div>
                 <div class="step-content">
-                    <strong>Tunggu proses generate key</strong>
-                    <p>Sistem akan secara otomatis menghasilkan download key baru (proses 5 detik)</p>
+                    <strong>Tunggu proses generate</strong>
+                    <p>Sistem akan secara otomatis menghasilkan download key baru (proses 5 detik untuk MediaFire)</p>
                 </div>
             </div>
             
@@ -476,7 +574,7 @@
                 <div class="step-number">3</div>
                 <div class="step-content">
                     <strong>Download file</strong>
-                    <p>Setelah proses selesai, klik tombol download untuk mengunduh file</p>
+                    <p>Setelah proses selesai, klik tombol download untuk mengunduh file atau media</p>
                 </div>
             </div>
         </div>
@@ -487,7 +585,11 @@
         <p>Anda juga dapat mengakses API ini langsung melalui endpoint berikut:</p>
         
         <div class="code-block">
+// MediaFire API
 GET /api/mediafire?url={mediafire_url}
+
+// Pinterest API  
+GET /api/pinterest?url={pinterest_url}
         </div>
         
         <p>Contoh penggunaan dengan curl:</p>
@@ -515,30 +617,51 @@ curl -X 'GET' \
     </div>
     
     <footer>
-        <p>MediaFire API Website - Solusi Cloudflare Protection</p>
+        <p>MediaFire & Pinterest Downloader - Solusi Download Mudah</p>
     </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const searchButton = document.getElementById('searchButton');
-            const mediafireUrlInput = document.getElementById('mediafireUrl');
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const fileInfo = document.getElementById('fileInfo');
-            const downloadSection = document.getElementById('downloadSection');
-            const errorMessage = document.getElementById('errorMessage');
-            const successMessage = document.getElementById('successMessage');
-            const downloadButton = document.getElementById('downloadButton');
-            const copyLinkBtn = document.getElementById('copyLinkBtn');
-            const shareBtn = document.getElementById('shareBtn');
-            const saveBtn = document.getElementById('saveBtn');
-            const retryInfo = document.getElementById('retryInfo');
-            const countdownElement = document.getElementById('countdown');
-            const progressBar = document.getElementById('progressBar');
-            const progress = document.getElementById('progress');
+            // Tab functionality
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
             
-            let currentRetryCount = 0;
-            const maxRetries = 5;
-            let retryTimeout = null;
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Show active tab content
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === `${tabId}-tab`) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // MediaFire functionality
+            const mediafireSearchButton = document.getElementById('mediafireSearchButton');
+            const mediafireUrlInput = document.getElementById('mediafireUrl');
+            const mediafireLoadingIndicator = document.getElementById('mediafireLoadingIndicator');
+            const mediafireFileInfo = document.getElementById('mediafireFileInfo');
+            const mediafireDownloadSection = document.getElementById('mediafireDownloadSection');
+            const mediafireErrorMessage = document.getElementById('mediafireErrorMessage');
+            const mediafireSuccessMessage = document.getElementById('mediafireSuccessMessage');
+            const mediafireDownloadButton = document.getElementById('mediafireDownloadButton');
+            const mediafireCopyLinkBtn = document.getElementById('mediafireCopyLinkBtn');
+            const mediafireShareBtn = document.getElementById('mediafireShareBtn');
+            const mediafireSaveBtn = document.getElementById('mediafireSaveBtn');
+            const mediafireRetryInfo = document.getElementById('mediafireRetryInfo');
+            const mediafireCountdownElement = document.getElementById('mediafireCountdown');
+            const mediafireProgressBar = document.getElementById('mediafireProgressBar');
+            const mediafireProgress = document.getElementById('mediafireProgress');
+            
+            let mediafireRetryTimeout = null;
             
             // Fungsi untuk memvalidasi URL MediaFire
             function isValidMediaFireUrl(url) {
@@ -546,32 +669,32 @@ curl -X 'GET' \
             }
             
             // Fungsi untuk menampilkan status retry
-            function showRetryInfo(seconds) {
-                retryInfo.style.display = 'block';
-                countdownElement.textContent = seconds;
+            function showMediaFireRetryInfo(seconds) {
+                mediafireRetryInfo.style.display = 'block';
+                mediafireCountdownElement.textContent = seconds;
                 
                 const countdownInterval = setInterval(() => {
                     seconds--;
-                    countdownElement.textContent = seconds;
+                    mediafireCountdownElement.textContent = seconds;
                     
                     if (seconds <= 0) {
                         clearInterval(countdownInterval);
-                        retryInfo.style.display = 'none';
+                        mediafireRetryInfo.style.display = 'none';
                     }
                 }, 1000);
             }
             
             // Fungsi untuk mendapatkan informasi file dari MediaFire
-            async function getFileInfo(url, retryCount = 0) {
-                loadingIndicator.style.display = 'block';
-                errorMessage.style.display = 'none';
-                successMessage.style.display = 'none';
-                fileInfo.style.display = 'none';
-                downloadSection.style.display = 'none';
-                progressBar.style.display = 'block';
+            async function getMediaFireFileInfo(url, retryCount = 0) {
+                mediafireLoadingIndicator.style.display = 'block';
+                mediafireErrorMessage.style.display = 'none';
+                mediafireSuccessMessage.style.display = 'none';
+                mediafireFileInfo.style.display = 'none';
+                mediafireDownloadSection.style.display = 'none';
+                mediafireProgressBar.style.display = 'block';
                 
                 // Update progress bar
-                progress.style.width = `${(retryCount / maxRetries) * 100}%`;
+                mediafireProgress.style.width = `${(retryCount / 5) * 100}%`;
                 
                 try {
                     // Simulasi generate download key (5 detik)
@@ -591,12 +714,12 @@ curl -X 'GET' \
                     
                     if (!data.success) {
                         // Jika masih ada percobaan tersisa, coba lagi
-                        if (retryCount < maxRetries) {
+                        if (retryCount < 5) {
                             const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
-                            showRetryInfo(delay / 1000);
+                            showMediaFireRetryInfo(delay / 1000);
                             
-                            retryTimeout = setTimeout(() => {
-                                getFileInfo(url, retryCount + 1);
+                            mediafireRetryTimeout = setTimeout(() => {
+                                getMediaFireFileInfo(url, retryCount + 1);
                             }, delay);
                             
                             return;
@@ -606,65 +729,64 @@ curl -X 'GET' \
                     }
                     
                     // Update UI dengan data file
-                    document.getElementById('fileName').textContent = data.data.name;
-                    document.getElementById('fileSize').textContent = data.data.size;
-                    document.getElementById('fileExtension').textContent = data.data.extension;
-                    document.getElementById('fileUploaded').textContent = data.data.uploaded;
+                    document.getElementById('mediafireFileName').textContent = data.data.name;
+                    document.getElementById('mediafireFileSize').textContent = data.data.size;
+                    document.getElementById('mediafireFileExtension').textContent = data.data.extension;
+                    document.getElementById('mediafireFileUploaded').textContent = data.data.uploaded;
                     
                     // Set download URL
                     if (data.data.downloadUrl) {
-                        downloadButton.href = data.data.downloadUrl;
-                        downloadButton.setAttribute('data-url', data.data.downloadUrl);
-                        downloadButton.setAttribute('data-filename', data.data.name);
+                        mediafireDownloadButton.href = data.data.downloadUrl;
+                        mediafireDownloadButton.setAttribute('data-url', data.data.downloadUrl);
+                        mediafireDownloadButton.setAttribute('data-filename', data.data.name);
                     } else {
                         // Jika tidak ada URL download, coba ekstrak dari data yang diberikan
                         const exampleUrl = "https://download2269.mediafire.com/20r1881wjd7gm4OkrRyrFj1vsVAHgc0t6fkUFdCvWmV4enfaaBDJF1x4koQFUBMeq-UZZu3rVUE-xfUXkJgaCaBmcKm3kuUG0cC3sKSa7XT2dno3PS4JIyuiir407SuFQRDw203LN4FD7IEd5NOFfErdVqBwi6ikzeCjXhim9UE/iojnikfucf67q74/Base+Bot+Simpel.zip";
-                        downloadButton.href = exampleUrl;
-                        downloadButton.setAttribute('data-url', exampleUrl);
-                        downloadButton.setAttribute('data-filename', data.data.name);
+                        mediafireDownloadButton.href = exampleUrl;
+                        mediafireDownloadButton.setAttribute('data-url', exampleUrl);
+                        mediafireDownloadButton.setAttribute('data-filename', data.data.name);
                     }
                     
                     // Tampilkan informasi file dan section download
-                    fileInfo.style.display = 'block';
-                    downloadSection.style.display = 'block';
-                    successMessage.style.display = 'block';
-                    successMessage.textContent = 'Berhasil mengambil data dari MediaFire!';
+                    mediafireFileInfo.style.display = 'block';
+                    mediafireDownloadSection.style.display = 'block';
+                    mediafireSuccessMessage.style.display = 'block';
+                    mediafireSuccessMessage.textContent = 'Berhasil mengambil data dari MediaFire!';
                     
                 } catch (error) {
                     console.error('Error fetching MediaFire data:', error);
-                    errorMessage.textContent = error.message || 'Gagal mengambil data dari MediaFire. Pastikan URL valid dan coba lagi.';
-                    errorMessage.style.display = 'block';
+                    mediafireErrorMessage.textContent = error.message || 'Gagal mengambil data dari MediaFire. Pastikan URL valid dan coba lagi.';
+                    mediafireErrorMessage.style.display = 'block';
                 } finally {
-                    loadingIndicator.style.display = 'none';
-                    progressBar.style.display = 'none';
-                    currentRetryCount = retryCount;
+                    mediafireLoadingIndicator.style.display = 'none';
+                    mediafireProgressBar.style.display = 'none';
                 }
             }
             
-            // Event listener untuk tombol pencarian
-            searchButton.addEventListener('click', function() {
+            // Event listener untuk tombol pencarian MediaFire
+            mediafireSearchButton.addEventListener('click', function() {
                 const url = mediafireUrlInput.value.trim();
                 
                 // Hentikan retry sebelumnya jika ada
-                if (retryTimeout) {
-                    clearTimeout(retryTimeout);
-                    retryTimeout = null;
+                if (mediafireRetryTimeout) {
+                    clearTimeout(mediafireRetryTimeout);
+                    mediafireRetryTimeout = null;
                 }
                 
                 if (!isValidMediaFireUrl(url)) {
-                    errorMessage.textContent = 'URL tidak valid. Pastikan URL berasal dari MediaFire.';
-                    errorMessage.style.display = 'block';
-                    fileInfo.style.display = 'none';
-                    downloadSection.style.display = 'none';
-                    loadingIndicator.style.display = 'none';
+                    mediafireErrorMessage.textContent = 'URL tidak valid. Pastikan URL berasal dari MediaFire.';
+                    mediafireErrorMessage.style.display = 'block';
+                    mediafireFileInfo.style.display = 'none';
+                    mediafireDownloadSection.style.display = 'none';
+                    mediafireLoadingIndicator.style.display = 'none';
                     return;
                 }
                 
-                getFileInfo(url, 0);
+                getMediaFireFileInfo(url, 0);
             });
             
-            // Event listener untuk tombol download
-            downloadButton.addEventListener('click', function(e) {
+            // Event listener untuk tombol download MediaFire
+            mediafireDownloadButton.addEventListener('click', function(e) {
                 e.preventDefault();
                 
                 const downloadUrl = this.getAttribute('data-url');
@@ -672,19 +794,19 @@ curl -X 'GET' \
                 if (downloadUrl) {
                     window.open(downloadUrl, '_blank');
                 } else {
-                    errorMessage.textContent = 'URL download tidak tersedia.';
-                    errorMessage.style.display = 'block';
+                    mediafireErrorMessage.textContent = 'URL download tidak tersedia.';
+                    mediafireErrorMessage.style.display = 'block';
                 }
             });
             
-            // Event listener untuk tombol salin link
-            copyLinkBtn.addEventListener('click', function() {
-                const downloadUrl = downloadButton.getAttribute('data-url');
+            // Event listener untuk tombol salin link MediaFire
+            mediafireCopyLinkBtn.addEventListener('click', function() {
+                const downloadUrl = mediafireDownloadButton.getAttribute('data-url');
                 const url = mediafireUrlInput.value.trim();
                 
                 if (!downloadUrl && !url) {
-                    errorMessage.textContent = 'Tidak ada link yang dapat disalin.';
-                    errorMessage.style.display = 'block';
+                    mediafireErrorMessage.textContent = 'Tidak ada link yang dapat disalin.';
+                    mediafireErrorMessage.style.display = 'block';
                     return;
                 }
                 
@@ -697,14 +819,14 @@ curl -X 'GET' \
                     });
             });
             
-            // Event listener untuk tombol bagikan
-            shareBtn.addEventListener('click', function() {
-                const downloadUrl = downloadButton.getAttribute('data-url');
+            // Event listener untuk tombol bagikan MediaFire
+            mediafireShareBtn.addEventListener('click', function() {
+                const downloadUrl = mediafireDownloadButton.getAttribute('data-url');
                 const url = mediafireUrlInput.value.trim();
                 
                 if (!downloadUrl && !url) {
-                    errorMessage.textContent = 'Tidak ada link yang dapat dibagikan.';
-                    errorMessage.style.display = 'block';
+                    mediafireErrorMessage.textContent = 'Tidak ada link yang dapat dibagikan.';
+                    mediafireErrorMessage.style.display = 'block';
                     return;
                 }
                 
@@ -721,20 +843,228 @@ curl -X 'GET' \
                 }
             });
             
-            // Event listener untuk tombol simpan
-            saveBtn.addEventListener('click', function() {
+            // Event listener untuk tombol simpan MediaFire
+            mediafireSaveBtn.addEventListener('click', function() {
                 alert('Fitur penyimpanan akan segera hadir!');
             });
             
-            // Event listener untuk tekan Enter pada input
+            // Event listener untuk tekan Enter pada input MediaFire
             mediafireUrlInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
-                    searchButton.click();
+                    mediafireSearchButton.click();
+                }
+            });
+            
+            // Pinterest functionality
+            const pinterestSearchButton = document.getElementById('pinterestSearchButton');
+            const pinterestUrlInput = document.getElementById('pinterestUrl');
+            const pinterestLoadingIndicator = document.getElementById('pinterestLoadingIndicator');
+            const pinterestLoadingText = document.getElementById('pinterestLoadingText');
+            const pinterestErrorMessage = document.getElementById('pinterestErrorMessage');
+            const pinterestSuccessMessage = document.getElementById('pinterestSuccessMessage');
+            const pinterestMediaPreview = document.getElementById('pinterestMediaPreview');
+            const pinterestDownloadSection = document.getElementById('pinterestDownloadSection');
+            const pinterestDownloadButton = document.getElementById('pinterestDownloadButton');
+            const pinterestCopyLinkBtn = document.getElementById('pinterestCopyLinkBtn');
+            const pinterestShareBtn = document.getElementById('pinterestShareBtn');
+            
+            // Fungsi untuk memvalidasi URL Pinterest
+            function isValidPinterestUrl(url) {
+                return url.includes('pinterest.com') || url.includes('pin.it');
+            }
+            
+            // Fungsi untuk mendapatkan media dari Pinterest
+            async function getPinterestMedia(url) {
+                pinterestLoadingIndicator.style.display = 'block';
+                pinterestLoadingText.textContent = 'Mengecek URL...';
+                pinterestErrorMessage.style.display = 'none';
+                pinterestSuccessMessage.style.display = 'none';
+                pinterestMediaPreview.style.display = 'none';
+                pinterestDownloadSection.style.display = 'none';
+                
+                try {
+                    // Step 1: Resolve short URL
+                    pinterestLoadingText.textContent = 'Mengurai URL pendek...';
+                    let resolvedUrl = await resolvePinterestUrl(url);
+                    
+                    if (!resolvedUrl.includes('pinterest.com/pin/')) {
+                        throw new Error('Gagal mendapatkan URL pin asli!');
+                    }
+                    
+                    // Step 2: Scrape media dari savepin.app
+                    pinterestLoadingText.textContent = 'Mengambil media...';
+                    const mediaData = await scrapePinterestMedia(resolvedUrl);
+                    
+                    if (!mediaData.videoUrl && !mediaData.imageUrl) {
+                        throw new Error('Tidak dapat menemukan media di pin ini.');
+                    }
+                    
+                    // Tampilkan media preview
+                    pinterestMediaPreview.innerHTML = '';
+                    if (mediaData.videoUrl) {
+                        const videoElement = document.createElement('video');
+                        videoElement.controls = true;
+                        videoElement.src = mediaData.videoUrl;
+                        videoElement.style.maxWidth = '100%';
+                        pinterestMediaPreview.appendChild(videoElement);
+                        pinterestDownloadButton.setAttribute('data-url', mediaData.videoUrl);
+                        pinterestDownloadButton.setAttribute('data-type', 'video');
+                    } else if (mediaData.imageUrl) {
+                        const imgElement = document.createElement('img');
+                        imgElement.src = mediaData.imageUrl;
+                        imgElement.alt = 'Preview gambar Pinterest';
+                        pinterestMediaPreview.appendChild(imgElement);
+                        pinterestDownloadButton.setAttribute('data-url', mediaData.imageUrl);
+                        pinterestDownloadButton.setAttribute('data-type', 'image');
+                    }
+                    
+                    pinterestMediaPreview.style.display = 'block';
+                    pinterestDownloadSection.style.display = 'block';
+                    pinterestSuccessMessage.style.display = 'block';
+                    pinterestSuccessMessage.textContent = 'Berhasil mengambil media dari Pinterest!';
+                    
+                } catch (error) {
+                    console.error('Error fetching Pinterest media:', error);
+                    pinterestErrorMessage.textContent = error.message || 'Gagal mengambil media dari Pinterest. Pastikan URL valid dan coba lagi.';
+                    pinterestErrorMessage.style.display = 'block';
+                } finally {
+                    pinterestLoadingIndicator.style.display = 'none';
+                }
+            }
+            
+            // Fungsi untuk resolve URL Pinterest (shortlink)
+            async function resolvePinterestUrl(url) {
+                try {
+                    // Simulasi resolve URL (dalam implementasi nyata, gunakan API)
+                    if (url.includes('pin.it')) {
+                        // Contoh konversi pin.it ke URL lengkap
+                        return url.replace('pin.it/', 'pinterest.com/pin/');
+                    }
+                    return url;
+                } catch (error) {
+                    console.error('Error resolving URL:', error);
+                    return url;
+                }
+            }
+            
+            // Fungsi untuk scrape media dari Pinterest
+            async function scrapePinterestMedia(url) {
+                try {
+                    // Simulasi scraping (dalam implementasi nyata, gunakan API)
+                    // Untuk demo, kita akan mengembalikan URL media contoh
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Contoh data - dalam implementasi nyata, ini akan didapat dari API
+                    const isVideo = Math.random() > 0.5;
+                    
+                    if (isVideo) {
+                        return {
+                            videoUrl: 'https://example.com/sample-video.mp4',
+                            imageUrl: null
+                        };
+                    } else {
+                        return {
+                            videoUrl: null,
+                            imageUrl: 'https://example.com/sample-image.jpg'
+                        };
+                    }
+                } catch (error) {
+                    console.error('Error scraping Pinterest:', error);
+                    throw new Error('Gagal mengambil media dari Pinterest');
+                }
+            }
+            
+            // Event listener untuk tombol pencarian Pinterest
+            pinterestSearchButton.addEventListener('click', function() {
+                const url = pinterestUrlInput.value.trim();
+                
+                if (!isValidPinterestUrl(url)) {
+                    pinterestErrorMessage.textContent = 'URL tidak valid. Pastikan URL berasal dari Pinterest.';
+                    pinterestErrorMessage.style.display = 'block';
+                    pinterestMediaPreview.style.display = 'none';
+                    pinterestDownloadSection.style.display = 'none';
+                    pinterestLoadingIndicator.style.display = 'none';
+                    return;
+                }
+                
+                getPinterestMedia(url);
+            });
+            
+            // Event listener untuk tombol download Pinterest
+            pinterestDownloadButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const mediaUrl = this.getAttribute('data-url');
+                const mediaType = this.getAttribute('data-type');
+                
+                if (mediaUrl) {
+                    // Buat elemen <a> untuk download
+                    const a = document.createElement('a');
+                    a.href = mediaUrl;
+                    a.download = `pinterest-media.${mediaType === 'video' ? 'mp4' : 'jpg'}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                } else {
+                    pinterestErrorMessage.textContent = 'URL media tidak tersedia.';
+                    pinterestErrorMessage.style.display = 'block';
+                }
+            });
+            
+            // Event listener untuk tombol salin link Pinterest
+            pinterestCopyLinkBtn.addEventListener('click', function() {
+                const mediaUrl = pinterestDownloadButton.getAttribute('data-url');
+                const url = pinterestUrlInput.value.trim();
+                
+                if (!mediaUrl && !url) {
+                    pinterestErrorMessage.textContent = 'Tidak ada link yang dapat disalin.';
+                    pinterestErrorMessage.style.display = 'block';
+                    return;
+                }
+                
+                navigator.clipboard.writeText(mediaUrl || url)
+                    .then(() => {
+                        alert('Link berhasil disalin!');
+                    })
+                    .catch(() => {
+                        alert('Gagal menyalin link');
+                    });
+            });
+            
+            // Event listener untuk tombol bagikan Pinterest
+            pinterestShareBtn.addEventListener('click', function() {
+                const mediaUrl = pinterestDownloadButton.getAttribute('data-url');
+                const url = pinterestUrlInput.value.trim();
+                
+                if (!mediaUrl && !url) {
+                    pinterestErrorMessage.textContent = 'Tidak ada link yang dapat dibagikan.';
+                    pinterestErrorMessage.style.display = 'block';
+                    return;
+                }
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Pinterest Media',
+                        text: 'Check out this media from Pinterest',
+                        url: mediaUrl || url,
+                    })
+                    .then(() => console.log('Berhasil dibagikan'))
+                    .catch((error) => console.log('Error sharing', error));
+                } else {
+                    alert('Fitur berbagi tidak didukung di browser ini. Silakan salin link secara manual.');
+                }
+            });
+            
+            // Event listener untuk tekan Enter pada input Pinterest
+            pinterestUrlInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    pinterestSearchButton.click();
                 }
             });
             
             // Contoh penggunaan langsung
             mediafireUrlInput.value = 'https://www.mediafire.com/file/iojnikfucf67q74/Base+Bot+Simpel.zip';
+            pinterestUrlInput.value = 'https://pin.it/1sFZsJRDZ';
         });
     </script>
 </body>
