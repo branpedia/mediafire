@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pinterest Downloader API</title>
+    <title>Pinterest Media Downloader</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -21,7 +21,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
         }
         
         .container {
@@ -29,7 +28,7 @@
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             width: 100%;
-            max-width: 650px;
+            max-width: 800px;
             overflow: hidden;
             margin-bottom: 30px;
         }
@@ -124,82 +123,80 @@
             word-break: break-word;
         }
         
-        .download-section {
-            padding: 25px;
-            text-align: center;
+        .download-options {
+            padding: 20px;
             display: none;
         }
         
-        .download-btn {
-            display: inline-block;
+        .download-options h3 {
+            margin-bottom: 15px;
+            color: #e60023;
+            text-align: center;
+        }
+        
+        .media-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .media-table th, .media-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .media-table th {
+            background-color: #f9f9f9;
+            font-weight: 600;
+        }
+        
+        .media-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .download-btn-table {
             background: linear-gradient(to right, #e60023, #a50e0e);
             color: white;
-            padding: 15px 40px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 18px;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(230, 0, 35, 0.4);
-            margin-bottom: 20px;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
             cursor: pointer;
-        }
-        
-        .download-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(230, 0, 35, 0.6);
-        }
-        
-        .download-btn:active {
-            transform: translateY(1px);
-        }
-        
-        .download-meta {
             font-size: 14px;
-            color: #777;
-            margin-top: 10px;
+            transition: all 0.3s;
         }
         
-        .utility-nav {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-            gap: 15px;
+        .download-btn-table:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
         }
         
-        .utility-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: #f5f5f5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #e60023;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border: 1px solid #ddd;
-            cursor: pointer;
+        .media-preview {
+            padding: 20px;
+            text-align: center;
+            display: none;
+            border-bottom: 1px solid #eee;
         }
         
-        .utility-btn:hover {
-            background-color: #e60023;
-            color: white;
-            transform: scale(1.1);
+        .media-preview img, .media-preview video {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         
         .loading {
             display: none;
             text-align: center;
-            padding: 20px;
+            padding: 30px;
         }
         
         .spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
             border-left: 4px solid #e60023;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
             margin: 0 auto 15px;
         }
@@ -215,7 +212,7 @@
             color: #c62828;
             padding: 15px;
             border-radius: 8px;
-            margin: 20px 0;
+            margin: 20px;
             text-align: center;
         }
         
@@ -225,34 +222,8 @@
             color: #2e7d32;
             padding: 15px;
             border-radius: 8px;
-            margin: 20px 0;
+            margin: 20px;
             text-align: center;
-        }
-        
-        .api-info {
-            background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 650px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-        
-        .api-info h2 {
-            color: #e60023;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        
-        .code-block {
-            background-color: #f5f5f5;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 15px 0;
-            font-family: monospace;
-            font-size: 14px;
         }
         
         footer {
@@ -261,110 +232,6 @@
             color: white;
             font-size: 14px;
             opacity: 0.8;
-        }
-        
-        .retry-info {
-            font-size: 14px;
-            color: #777;
-            margin-top: 10px;
-            text-align: center;
-            display: none;
-        }
-        
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background-color: #f0f0f0;
-            border-radius: 3px;
-            margin: 10px 0;
-            overflow: hidden;
-            display: none;
-        }
-        
-        .progress {
-            height: 100%;
-            background: linear-gradient(to right, #e60023, #a50e0e);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-        
-        .download-helper {
-            background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 650px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-        
-        .download-helper h2 {
-            color: #e60023;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        
-        .helper-content {
-            margin-top: 20px;
-        }
-        
-        .helper-step {
-            display: flex;
-            margin-bottom: 15px;
-            align-items: flex-start;
-        }
-        
-        .step-number {
-            background: linear-gradient(to right, #e60023, #a50e0e);
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            margin-right: 15px;
-            flex-shrink: 0;
-        }
-        
-        .step-content {
-            flex: 1;
-        }
-        
-        .media-preview {
-            margin-top: 20px;
-            text-align: center;
-            display: none;
-        }
-        
-        .media-preview img, .media-preview video {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        .quality-options {
-            margin: 15px 0;
-            display: none;
-        }
-        
-        .quality-btn {
-            display: inline-block;
-            margin: 5px;
-            padding: 8px 15px;
-            background: #f0f0f0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .quality-btn:hover, .quality-btn.active {
-            background: #e60023;
-            color: white;
-            border-color: #e60023;
         }
         
         @media (max-width: 600px) {
@@ -376,7 +243,7 @@
                 font-size: 24px;
             }
             
-            .media-info, .download-section, .search-section {
+            .media-info, .download-options, .search-section {
                 padding: 15px;
             }
             
@@ -404,14 +271,22 @@
                 border-radius: 8px;
                 padding: 12px;
             }
+            
+            .media-table {
+                font-size: 14px;
+            }
+            
+            .media-table th, .media-table td {
+                padding: 8px 10px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Pinterest Downloader API</h1>
-            <p class="description">Unduh media dari Pinterest dengan mudah</p>
+            <h1>Pinterest Media Downloader</h1>
+            <p class="description">Download media dari Pinterest dalam berbagai kualitas</p>
         </header>
         
         <div class="search-section">
@@ -434,17 +309,9 @@
             Berhasil mengambil media dari Pinterest!
         </div>
         
-        <div class="progress-bar" id="progressBar">
-            <div class="progress" id="progress"></div>
-        </div>
-        
         <div class="loading" id="loadingIndicator">
             <div class="spinner"></div>
-            <p>Memproses permintaan...</p>
-        </div>
-        
-        <div class="retry-info" id="retryInfo">
-            Mencoba kembali dalam: <span id="countdown">5</span> detik
+            <p>Sedang memproses dan mengekstrak media...</p>
         </div>
         
         <div class="media-info" id="mediaInfo">
@@ -453,111 +320,39 @@
                 <span class="info-value" id="sourceUrl">-</span>
             </div>
             <div class="info-row">
-                <span class="info-label"><i class="fas fa-file"></i> Tipe:</span>
+                <span class="info-label"><i class="fas fa-file"></i> Tipe Media:</span>
                 <span class="info-value" id="mediaType">-</span>
             </div>
-        </div>
-        
-        <div class="quality-options" id="qualityOptions">
-            <p>Pilih kualitas:</p>
-            <div id="qualityButtons"></div>
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-database"></i> Jumlah Media:</span>
+                <span class="info-value" id="mediaCount">-</span>
+            </div>
         </div>
         
         <div class="media-preview" id="mediaPreview">
             <!-- Media akan ditampilkan di sini -->
         </div>
         
-        <div class="download-section" id="downloadSection">
-            <a href="#" class="download-btn" id="downloadButton">
-                <i class="fas fa-download"></i> Download Media
-            </a>
-            <p class="download-meta">Klik untuk mengunduh media</p>
-            
-            <div class="utility-nav">
-                <button class="utility-btn" title="Salin link" id="copyLinkBtn">
-                    <i class="fas fa-link"></i>
-                </button>
-                <button class="utility-btn" title="Bagikan" id="shareBtn">
-                    <i class="fas fa-share-alt"></i>
-                </button>
-                <button class="utility-btn" title="Simpan" id="saveBtn">
-                    <i class="fas fa-save"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <div class="download-helper">
-        <h2><i class="fas fa-wrench"></i> Cara Menggunakan Pinterest Downloader</h2>
-        <p>Alat ini membantu mengunduh media dari Pinterest dengan mudah.</p>
-        
-        <div class="helper-content">
-            <div class="helper-step">
-                <div class="step-number">1</div>
-                <div class="step-content">
-                    <strong>Salin URL Pinterest</strong>
-                    <p>Buka Pinterest dan salin URL pin yang ingin Anda download</p>
-                </div>
-            </div>
-            
-            <div class="helper-step">
-                <div class="step-number">2</div>
-                <div class="step-content">
-                    <strong>Tempel URL dan klik Search</strong>
-                    <p>Tempel URL di kolom input dan klik tombol search untuk memproses</p>
-                </div>
-            </div>
-            
-            <div class="helper-step">
-                <div class="step-number">3</div>
-                <div class="step-content">
-                    <strong>Download media</strong>
-                    <p>Setelah proses selesai, klik tombol download untuk mengunduh media</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="api-info">
-        <h2>API Documentation</h2>
-        <p>Gunakan API ini langsung melalui endpoint berikut:</p>
-        
-        <div class="code-block">
-GET /api/pinterest?url={pinterest_url}
-        </div>
-        
-        <p>Contoh penggunaan dengan JavaScript:</p>
-        
-        <div class="code-block">
-fetch('/api/pinterest?url=https://pin.it/1sFZsJRDZ')
-  .then(response => response.json())
-  .then(data => console.log(data));
-        </div>
-        
-        <p>Response JSON akan berisi:</p>
-        
-        <div class="code-block">
-{
-  "success": true,
-  "data": {
-    "mediaUrls": {
-      "videos": [
-        "https://v1.pinimg.com/videos/.../video.mp4"
-      ],
-      "images": [
-        "https://i.pinimg.com/.../image.jpg"
-      ]
-    },
-    "primaryUrl": "https://v1.pinimg.com/videos/.../video.mp4",
-    "type": "video",
-    "sourceUrl": "https://pin.it/1sFZsJRDZ"
-  }
-}
+        <div class="download-options" id="downloadOptions">
+            <h3><i class="fas fa-download"></i> Pilihan Download</h3>
+            <table class="media-table">
+                <thead>
+                    <tr>
+                        <th>Kualitas</th>
+                        <th>Format</th>
+                        <th>Ukuran</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="mediaTableBody">
+                    <!-- Opsi download akan ditambahkan di sini -->
+                </tbody>
+            </table>
         </div>
     </div>
     
     <footer>
-        <p>Pinterest Downloader API - Solusi Download Media Pinterest</p>
+        <p>Pinterest Media Downloader &copy; 2024 - Ekstrak dan download media dari Pinterest</p>
     </footer>
 
     <script>
@@ -567,300 +362,182 @@ fetch('/api/pinterest?url=https://pin.it/1sFZsJRDZ')
             const loadingIndicator = document.getElementById('loadingIndicator');
             const mediaInfo = document.getElementById('mediaInfo');
             const mediaPreview = document.getElementById('mediaPreview');
-            const downloadSection = document.getElementById('downloadSection');
+            const downloadOptions = document.getElementById('downloadOptions');
             const errorMessage = document.getElementById('errorMessage');
             const successMessage = document.getElementById('successMessage');
-            const downloadButton = document.getElementById('downloadButton');
-            const copyLinkBtn = document.getElementById('copyLinkBtn');
-            const shareBtn = document.getElementById('shareBtn');
-            const saveBtn = document.getElementById('saveBtn');
-            const retryInfo = document.getElementById('retryInfo');
-            const countdownElement = document.getElementById('countdown');
-            const progressBar = document.getElementById('progressBar');
-            const progress = document.getElementById('progress');
             const sourceUrlElement = document.getElementById('sourceUrl');
             const mediaTypeElement = document.getElementById('mediaType');
-            const qualityOptions = document.getElementById('qualityOptions');
-            const qualityButtons = document.getElementById('qualityButtons');
-            
-            let currentRetryCount = 0;
-            const maxRetries = 3;
-            let retryTimeout = null;
-            let currentMediaData = null;
+            const mediaCountElement = document.getElementById('mediaCount');
+            const mediaTableBody = document.getElementById('mediaTableBody');
             
             // Fungsi untuk memvalidasi URL Pinterest
             function isValidPinterestUrl(url) {
                 return url.includes('pinterest.com') || url.includes('pin.it');
             }
             
-            // Fungsi untuk menampilkan status retry
-            function showRetryInfo(seconds) {
-                retryInfo.style.display = 'block';
-                countdownElement.textContent = seconds;
+            // Fungsi untuk mengekstrak URL media dari savepin.app
+            async function extractMediaFromSavePin(url) {
+                // Simulasi ekstraksi media dari savepin.app
+                // Dalam implementasi nyata, ini akan melakukan scraping ke savepin.app
                 
-                const countdownInterval = setInterval(() => {
-                    seconds--;
-                    countdownElement.textContent = seconds;
-                    
-                    if (seconds <= 0) {
-                        clearInterval(countdownInterval);
-                        retryInfo.style.display = 'none';
-                    }
-                }, 1000);
+                // Contoh data untuk simulasi
+                const isVideo = Math.random() > 0.5;
+                const mediaData = {
+                    sourceUrl: url,
+                    mediaType: isVideo ? 'video' : 'image',
+                    mediaItems: []
+                };
+                
+                if (isVideo) {
+                    // Simulasi data video dengan berbagai kualitas
+                    mediaData.mediaItems = [
+                        {
+                            quality: 'HD',
+                            format: 'MP4',
+                            size: '3.2 MB',
+                            url: 'https://v1.pinimg.com/videos/mock/video_hd.mp4'
+                        },
+                        {
+                            quality: '480p',
+                            format: 'MP4',
+                            size: '1.39 MB',
+                            url: 'https://v1.pinimg.com/videos/mock/video_480p.mp4'
+                        }
+                    ];
+                    mediaData.previewUrl = 'https://v1.pinimg.com/videos/mock/video_480p.mp4';
+                } else {
+                    // Simulasi data gambar dengan berbagai kualitas
+                    mediaData.mediaItems = [
+                        {
+                            quality: 'Original',
+                            format: 'JPG',
+                            size: '2.1 MB',
+                            url: 'https://i.pinimg.com/originals/mock/image_original.jpg'
+                        },
+                        {
+                            quality: 'Large',
+                            format: 'JPG',
+                            size: '1.5 MB',
+                            url: 'https://i.pinimg.com/736x/mock/image_large.jpg'
+                        },
+                        {
+                            quality: 'Thumbnail',
+                            format: 'JPG',
+                            size: '0.4 MB',
+                            url: 'https://i.pinimg.com/236x/mock/image_thumbnail.jpg'
+                        }
+                    ];
+                    mediaData.previewUrl = 'https://i.pinimg.com/736x/mock/image_large.jpg';
+                }
+                
+                // Simulasi waktu ekstraksi
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                return mediaData;
             }
             
             // Fungsi untuk mendapatkan media dari Pinterest
-            async function getMediaInfo(url, retryCount = 0) {
+            async function getMediaInfo(url) {
                 loadingIndicator.style.display = 'block';
                 errorMessage.style.display = 'none';
                 successMessage.style.display = 'none';
                 mediaInfo.style.display = 'none';
                 mediaPreview.style.display = 'none';
-                downloadSection.style.display = 'none';
-                qualityOptions.style.display = 'none';
-                progressBar.style.display = 'block';
-                
-                // Update progress bar
-                progress.style.width = `${(retryCount / maxRetries) * 100}%`;
+                downloadOptions.style.display = 'none';
                 
                 try {
-                    // Simulasi proses (akan diganti dengan API call)
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    
-                    // Untuk demo, kita akan menggunakan data contoh
-                    // Dalam implementasi nyata, ini akan diganti dengan fetch ke API
-                    const isVideo = Math.random() > 0.5;
-                    const exampleData = {
-                        success: true,
-                        data: {
-                            mediaUrls: {
-                                videos: isVideo ? [
-                                    "https://v1.pinimg.com/videos/mock/video.mp4",
-                                    "https://v1.pinimg.com/videos/mock/video_480p.mp4"
-                                ] : [],
-                                images: !isVideo ? [
-                                    "https://i.pinimg.com/originals/mock/image.jpg",
-                                    "https://i.pinimg.com/736x/mock/image.jpg"
-                                ] : []
-                            },
-                            primaryUrl: isVideo ? "https://v1.pinimg.com/videos/mock/video.mp4" : "https://i.pinimg.com/originals/mock/image.jpg",
-                            type: isVideo ? "video" : "image",
-                            sourceUrl: url
-                        }
-                    };
-                    
-                    // Simulasi kegagalan 30% untuk demo retry
-                    if (Math.random() < 0.3 && retryCount < maxRetries) {
-                        throw new Error("Gagal mengambil data. Sedang mencoba kembali...");
+                    if (!isValidPinterestUrl(url)) {
+                        throw new Error('URL tidak valid. Pastikan URL berasal dari Pinterest.');
                     }
                     
-                    // Simpan data media
-                    currentMediaData = exampleData.data;
+                    // Ekstrak media dari savepin.app
+                    const mediaData = await extractMediaFromSavePin(url);
                     
                     // Update UI dengan data media
-                    sourceUrlElement.textContent = exampleData.data.sourceUrl;
-                    mediaTypeElement.textContent = exampleData.data.type;
-                    
-                    // Tampilkan opsi kualitas jika tersedia
-                    qualityButtons.innerHTML = '';
-                    if (exampleData.data.mediaUrls.videos.length > 1 || exampleData.data.mediaUrls.images.length > 1) {
-                        qualityOptions.style.display = 'block';
-                        
-                        if (exampleData.data.type === 'video') {
-                            exampleData.data.mediaUrls.videos.forEach((url, index) => {
-                                const quality = index === 0 ? 'HD' : '480p';
-                                const btn = document.createElement('button');
-                                btn.className = 'quality-btn' + (index === 0 ? ' active' : '');
-                                btn.textContent = quality;
-                                btn.onclick = () => selectQuality(url, 'video', btn);
-                                qualityButtons.appendChild(btn);
-                            });
-                        } else {
-                            exampleData.data.mediaUrls.images.forEach((url, index) => {
-                                const quality = index === 0 ? 'Original' : 'Thumbnail';
-                                const btn = document.createElement('button');
-                                btn.className = 'quality-btn' + (index === 0 ? ' active' : '');
-                                btn.textContent = quality;
-                                btn.onclick = () => selectQuality(url, 'image', btn);
-                                qualityButtons.appendChild(btn);
-                            });
-                        }
-                    }
+                    sourceUrlElement.textContent = mediaData.sourceUrl;
+                    mediaTypeElement.textContent = mediaData.mediaType;
+                    mediaCountElement.textContent = mediaData.mediaItems.length + ' kualitas tersedia';
                     
                     // Tampilkan preview media
                     mediaPreview.innerHTML = '';
-                    if (exampleData.data.type === 'video') {
+                    if (mediaData.mediaType === 'video') {
                         const video = document.createElement('video');
                         video.controls = true;
-                        video.src = exampleData.data.primaryUrl;
+                        video.src = mediaData.previewUrl;
+                        video.style.maxWidth = '100%';
                         mediaPreview.appendChild(video);
-                    } else if (exampleData.data.type === 'image') {
+                    } else {
                         const img = document.createElement('img');
-                        img.src = exampleData.data.primaryUrl;
+                        img.src = mediaData.previewUrl;
+                        img.style.maxWidth = '100%';
                         mediaPreview.appendChild(img);
                     }
                     
-                    // Set download URL
-                    downloadButton.href = exampleData.data.primaryUrl;
-                    downloadButton.setAttribute('data-url', exampleData.data.primaryUrl);
-                    downloadButton.setAttribute('data-type', exampleData.data.type);
+                    // Isi tabel opsi download
+                    mediaTableBody.innerHTML = '';
+                    mediaData.mediaItems.forEach(item => {
+                        const row = document.createElement('tr');
+                        
+                        const qualityCell = document.createElement('td');
+                        qualityCell.textContent = item.quality;
+                        
+                        const formatCell = document.createElement('td');
+                        formatCell.textContent = item.format;
+                        formatCell.style.textTransform = 'uppercase';
+                        
+                        const sizeCell = document.createElement('td');
+                        sizeCell.textContent = item.size;
+                        
+                        const actionCell = document.createElement('td');
+                        const downloadBtn = document.createElement('button');
+                        downloadBtn.className = 'download-btn-table';
+                        downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
+                        downloadBtn.onclick = () => {
+                            // Simulasi timeout seperti pada contoh
+                            setTimeout(() => {
+                                downloadMedia(item.url, `${item.quality}.${item.format.toLowerCase()}`);
+                            }, 100);
+                        };
+                        actionCell.appendChild(downloadBtn);
+                        
+                        row.appendChild(qualityCell);
+                        row.appendChild(formatCell);
+                        row.appendChild(sizeCell);
+                        row.appendChild(actionCell);
+                        
+                        mediaTableBody.appendChild(row);
+                    });
                     
-                    // Tampilkan informasi media dan section download
+                    // Tampilkan informasi media dan opsi download
                     mediaInfo.style.display = 'block';
                     mediaPreview.style.display = 'block';
-                    downloadSection.style.display = 'block';
+                    downloadOptions.style.display = 'block';
                     successMessage.style.display = 'block';
-                    successMessage.textContent = 'Berhasil mengambil media dari Pinterest!';
+                    successMessage.textContent = 'Berhasil mengekstrak media dari Pinterest!';
                     
                 } catch (error) {
                     console.error('Error fetching Pinterest data:', error);
-                    
-                    // Jika masih ada percobaan tersisa, coba lagi
-                    if (retryCount < maxRetries) {
-                        const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
-                        showRetryInfo(delay / 1000);
-                        
-                        retryTimeout = setTimeout(() => {
-                            getMediaInfo(url, retryCount + 1);
-                        }, delay);
-                        
-                        return;
-                    }
-                    
                     errorMessage.textContent = error.message || 'Gagal mengambil media dari Pinterest. Pastikan URL valid dan coba lagi.';
                     errorMessage.style.display = 'block';
                 } finally {
                     loadingIndicator.style.display = 'none';
-                    progressBar.style.display = 'none';
-                    currentRetryCount = retryCount;
                 }
             }
             
-            // Fungsi untuk memilih kualitas media
-            function selectQuality(url, type, button) {
-                // Hapus kelas active dari semua tombol
-                document.querySelectorAll('.quality-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                
-                // Tambahkan kelas active ke tombol yang diklik
-                button.classList.add('active');
-                
-                // Update preview media
-                mediaPreview.innerHTML = '';
-                if (type === 'video') {
-                    const video = document.createElement('video');
-                    video.controls = true;
-                    video.src = url;
-                    mediaPreview.appendChild(video);
-                } else {
-                    const img = document.createElement('img');
-                    img.src = url;
-                    mediaPreview.appendChild(img);
-                }
-                
-                // Update download URL
-                downloadButton.href = url;
-                downloadButton.setAttribute('data-url', url);
+            // Fungsi untuk mendownload media
+            function downloadMedia(url, filename) {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
             }
             
             // Event listener untuk tombol pencarian
             searchButton.addEventListener('click', function() {
                 const url = pinterestUrlInput.value.trim();
-                
-                // Hentikan retry sebelumnya jika ada
-                if (retryTimeout) {
-                    clearTimeout(retryTimeout);
-                    retryTimeout = null;
-                }
-                
-                if (!isValidPinterestUrl(url)) {
-                    errorMessage.textContent = 'URL tidak valid. Pastikan URL berasal dari Pinterest.';
-                    errorMessage.style.display = 'block';
-                    mediaInfo.style.display = 'none';
-                    mediaPreview.style.display = 'none';
-                    downloadSection.style.display = 'none';
-                    qualityOptions.style.display = 'none';
-                    loadingIndicator.style.display = 'none';
-                    return;
-                }
-                
-                getMediaInfo(url, 0);
-            });
-            
-            // Event listener untuk tombol download
-            downloadButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                const downloadUrl = this.getAttribute('data-url');
-                const mediaType = this.getAttribute('data-type');
-                
-                if (downloadUrl) {
-                    const a = document.createElement('a');
-                    a.href = downloadUrl;
-                    a.download = `pinterest-media.${mediaType === 'video' ? 'mp4' : 'jpg'}`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                } else {
-                    errorMessage.textContent = 'URL download tidak tersedia.';
-                    errorMessage.style.display = 'block';
-                }
-            });
-            
-            // Event listener untuk tombol salin link
-            copyLinkBtn.addEventListener('click', function() {
-                const downloadUrl = downloadButton.getAttribute('data-url');
-                const url = pinterestUrlInput.value.trim();
-                
-                if (!downloadUrl && !url) {
-                    errorMessage.textContent = 'Tidak ada link yang dapat disalin.';
-                    errorMessage.style.display = 'block';
-                    return;
-                }
-                
-                navigator.clipboard.writeText(downloadUrl || url)
-                    .then(() => {
-                        alert('Link berhasil disalin!');
-                    })
-                    .catch(() => {
-                        alert('Gagal menyalin link');
-                    });
-            });
-            
-            // Event listener untuk tombol bagikan
-            shareBtn.addEventListener('click', function() {
-                const downloadUrl = downloadButton.getAttribute('data-url');
-                const url = pinterestUrlInput.value.trim();
-                
-                if (!downloadUrl && !url) {
-                    errorMessage.textContent = 'Tidak ada link yang dapat dibagikan.';
-                    errorMessage.style.display = 'block';
-                    return;
-                }
-                
-                if (navigator.share) {
-                    navigator.share({
-                        title: 'Pinterest Media',
-                        text: 'Check out this media from Pinterest',
-                        url: downloadUrl || url,
-                    })
-                    .then(() => console.log('Berhasil dibagikan'))
-                    .catch((error) => console.log('Error sharing', error));
-                } else {
-                    alert('Fitur berbagi tidak didukung di browser ini. Silakan salin link secara manual.');
-                }
-            });
-            
-            // Event listener untuk tombol simpan
-            saveBtn.addEventListener('click', function() {
-                if (currentMediaData) {
-                    // Simulasi penyimpanan data
-                    localStorage.setItem('lastPinterestMedia', JSON.stringify(currentMediaData));
-                    alert('Data media berhasil disimpan secara lokal!');
-                } else {
-                    alert('Tidak ada data media untuk disimpan.');
-                }
+                getMediaInfo(url);
             });
             
             // Event listener untuk tekan Enter pada input
