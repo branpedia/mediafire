@@ -1,14 +1,11 @@
 {
-  "name": "pinterest-api",
-  "version": "1.0.0",
-  "description": "Pinterest Downloader API",
-  "main": "api/pin.js",
-  "type": "module",
-  "scripts": {
-    "dev": "vercel dev"
-  },
-  "dependencies": {
-    "axios": "^1.6.8",
-    "cheerio": "^1.0.0-rc.12"
-  }
+  "version": 2,
+  "builds": [
+    { "src": "api/pin.js", "use": "@vercel/node" },
+    { "src": "index.html", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/api/pin", "dest": "api/pin.js" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
 }
