@@ -1,14 +1,20 @@
 import cloudscraper from 'cloudscraper';
-import { JSDOM } from 'jsdom';
-import puppeteer from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha';
-import axios from 'axios';
-import { HttpsProxyAgent } from 'https-proxy-agent';
 
-// Gunakan plugin stealth untuk bypass detection
-puppeteer.use(StealthPlugin());
-puppeteer.use(RecaptchaPlugin());
+// Fallback untuk environment yang tidak support Puppeteer
+let puppeteer;
+let StealthPlugin;
+let RecaptchaPlugin;
+
+try {
+  puppeteer = (await import('puppeteer-extra')).default;
+  StealthPlugin = (await import('puppeteer-extra-plugin-stealth')).default;
+  RecaptchaPlugin = (await import('puppeteer-extra-plugin-recaptcha')).default;
+  
+  puppeteer.use(StealthPlugin());
+  puppeteer.use(RecaptchaPlugin());
+} catch (error) {
+  console.warn('Puppeteer tidak tersedia, menggunakan fallback methods');
+}
 
 export default async function handler(request, response) {
   // Set CORS headers
@@ -51,16 +57,18 @@ export default async function handler(request, response) {
 
     // Choose method based on parameter or auto-detect
     let result;
-    if (method === 'puppeteer' || retry > 0) {
+    if (method === 'puppeteer' && puppeteer) {
       result = await handleWithPuppeteer(url, response, retry);
     } else if (method === 'cloudscraper') {
       result = await handleWithCloudscraper(url, response);
     } else if (method === 'direct') {
       result = await handleDirectDownload(fileId, response);
     } else {
-      // Auto mode - try multiple methods
+      // Auto mode - try cloudscraper first
       result = await handleWithCloudscraper(url, response);
-      if (!result.success) {
+      
+      // If cloudscraper fails and puppeteer is available, try puppeteer
+      if (!result.success && puppeteer) {
         result = await handleWithPuppeteer(url, response, retry);
       }
     }
@@ -144,12 +152,6 @@ async function handleWithCloudscraper(url, response) {
       });
     }
     
-    // Check if we need to generate a new key
-    const generateKeyMsg = document.querySelector('.DownloadRepair-generateKeyMessage');
-    if (generateKeyMsg) {
-      return await handleDownloadRepair(url, response);
-    }
-    
     return {
       success: false,
       error: 'Tidak dapat mengekstrak URL download dengan Cloudscraper.'
@@ -164,13 +166,20 @@ async function handleWithCloudscraper(url, response) {
   }
 }
 
-// Method 2: Puppeteer approach with stealth
+// Method 2: Puppeteer approach with stealth (only if available)
 async function handleWithPuppeteer(url, response, retry = 0) {
+  if (!puppeteer) {
+    return {
+      success: false,
+      error: 'Puppeteer tidak tersedia di environment ini.'
+    };
+  }
+
   let browser;
   try {
     // Launch puppeteer with stealth plugin
     browser = await puppeteer.launch({ 
-      headless: true,
+      headless: 'new',
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -191,21 +200,6 @@ async function handleWithPuppeteer(url, response, retry = 0) {
       timeout: 30000
     });
     
-    // Check if we need to handle download repair
-    const needsRepair = await page.$('.DownloadRepair-generateKeyMessage') !== null;
-    if (needsRepair) {
-      await browser.close();
-      return await handleDownloadRepair(url, response);
-    }
-    
-    // Check for Cloudflare challenge
-    const isCloudflare = await page.$('#challenge-form') !== null;
-    if (isCloudflare) {
-      console.log('Cloudflare challenge detected, waiting for resolution...');
-      // Wait for Cloudflare challenge to resolve
-      await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 });
-    }
-    
     // Try to extract download URL using multiple methods
     const downloadData = await page.evaluate(() => {
       // Method 1: Check for download button with scrambled URL
@@ -225,22 +219,6 @@ async function handleWithPuppeteer(url, response, retry = 0) {
           type: 'direct',
           url: directLink.href
         };
-      }
-      
-      // Method 3: Check for JSON data in pre elements
-      const preElements = document.querySelectorAll('pre');
-      for (const pre of preElements) {
-        try {
-          const jsonData = JSON.parse(pre.textContent);
-          if (jsonData.success && jsonData.data && jsonData.data.downloadUrl) {
-            return {
-              type: 'json',
-              url: jsonData.data.downloadUrl
-            };
-          }
-        } catch (e) {
-          // Not a JSON element, continue
-        }
       }
       
       return null;
@@ -285,8 +263,7 @@ async function handleWithPuppeteer(url, response, retry = 0) {
     } else {
       return response.status(500).json({ 
         success: false, 
-        error: 'Tidak dapat mengekstrak URL download dengan Puppeteer.',
-        retryUrl: `/api/mediafire?url=${encodeURIComponent(url)}&retry=${parseInt(retry) + 1}&method=puppeteer`
+        error: 'Tidak dapat mengekstrak URL download dengan Puppeteer.'
       });
     }
   } catch (error) {
@@ -294,120 +271,7 @@ async function handleWithPuppeteer(url, response, retry = 0) {
     console.error('Error with puppeteer:', error);
     return response.status(500).json({ 
       success: false, 
-      error: 'Puppeteer gagal: ' + error.message,
-      retryUrl: `/api/mediafire?url=${encodeURIComponent(url)}&retry=${parseInt(retry) + 1}&method=direct`
-    });
-  }
-}
-
-// Method 3: Direct download approach (bypass HTML)
-async function handleDirectDownload(fileId, response) {
-  try {
-    // Try to construct direct download URL
-    const directUrl = `https://download${Math.floor(Math.random() * 10000)}.mediafire.com/${fileId}/file`;
-    
-    // Test if the URL is accessible
-    const testResponse = await axios.head(directUrl, { timeout: 10000 });
-    
-    if (testResponse.status === 200) {
-      return response.status(200).json({
-        success: true,
-        data: {
-          name: fileId,
-          size: '0MB',
-          extension: 'unknown',
-          uploaded: new Date().toLocaleString('id-ID'),
-          downloadUrl: directUrl,
-          method: 'direct'
-        }
-      });
-    }
-    
-    return {
-      success: false,
-      error: 'Direct download tidak berhasil.'
-    };
-  } catch (error) {
-    console.error('Error with direct download:', error);
-    return {
-      success: false,
-      error: 'Direct download gagal: ' + error.message
-    };
-  }
-}
-
-// Handle download repair process
-async function handleDownloadRepair(url, response) {
-  let browser;
-  try {
-    // Extract file ID from URL
-    const fileId = extractFileId(url);
-    if (!fileId) {
-      return response.status(400).json({ 
-        success: false, 
-        error: 'Tidak dapat mengekstrak ID file dari URL.' 
-      });
-    }
-    
-    const repairUrl = `https://www.mediafire.com/download_repair.php?flag=4&qkey=${fileId}`;
-    
-    // Use puppeteer to handle the repair process
-    browser = await puppeteer.launch({ 
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-    
-    const page = await browser.newPage();
-    await page.goto(repairUrl, { waitUntil: 'networkidle2', timeout: 30000 });
-    
-    // Wait for the continue button to be available
-    await page.waitForSelector('.DownloadRepair-continue', { timeout: 10000 });
-    
-    // Click the continue button
-    await page.click('.DownloadRepair-continue');
-    
-    // Wait for navigation to complete
-    await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 });
-    
-    // Get the final URL
-    const finalUrl = page.url();
-    
-    await browser.close();
-    
-    // If we got a direct download URL, return it
-    if (finalUrl.includes('mediafire.com/')) {
-      // Extract file info from the page if possible
-      const fileInfo = {
-        name: fileId,
-        size: '0MB'
-      };
-      
-      const extension = fileInfo.name.includes('.') ? 
-        fileInfo.name.split('.').pop() : 'unknown';
-      
-      return response.status(200).json({
-        success: true,
-        data: {
-          name: fileInfo.name,
-          size: fileInfo.size,
-          extension: extension,
-          uploaded: new Date().toLocaleString('id-ID'),
-          downloadUrl: finalUrl,
-          method: 'repair'
-        }
-      });
-    } else {
-      return response.status(500).json({ 
-        success: false, 
-        error: 'Proses perbaikan download tidak berhasil.' 
-      });
-    }
-  } catch (error) {
-    if (browser) await browser.close();
-    console.error('Error in download repair:', error);
-    return response.status(500).json({ 
-      success: false, 
-      error: 'Terjadi kesalahan selama proses perbaikan download.' 
+      error: 'Puppeteer gagal: ' + error.message
     });
   }
 }
