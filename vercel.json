@@ -1,27 +1,14 @@
 {
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        }
-      ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/pinterest",
-      "destination": "/api/pinterest.js"
-    },
-    {
-      "source": "/api/mediafire",
-      "destination": "/api/mediafire.js"
-    }
-  ]
+  "name": "pinterest-api",
+  "version": "1.0.0",
+  "description": "Pinterest Downloader API",
+  "main": "api/pin.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "axios": "^1.6.8",
+    "cheerio": "^1.0.0-rc.12"
+  }
 }
