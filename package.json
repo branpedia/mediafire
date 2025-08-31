@@ -1,7 +1,7 @@
 {
-  "name": "mediafire-api-website",
+  "name": "pinterest-api-website",
   "version": "1.0.0",
-  "description": "Website untuk mendapatkan informasi dan link download dari MediaFire dan Pinterest",
+  "description": "Website untuk mendapatkan media dari Pinterest",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -9,11 +9,10 @@
   },
   "dependencies": {
     "vite": "^4.4.0",
+    "axios": "^1.5.0",
+    "cheerio": "^1.0.0-rc.12",
     "cloudscraper": "^4.6.0",
     "jsdom": "^22.1.0",
-    "puppeteer": "^21.5.2",
-    "puppeteer-core": "^21.5.2",
-    "axios": "^1.5.0",
-    "cheerio": "^1.0.0-rc.12"
+    "puppeteer": "^21.5.2"
   }
 }
