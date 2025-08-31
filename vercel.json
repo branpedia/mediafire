@@ -1,4 +1,35 @@
 {
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/mediafire.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/pinterest.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/mediafire",
+      "dest": "/api/mediafire.js",
+      "methods": ["GET", "OPTIONS"]
+    },
+    {
+      "src": "/api/pinterest",
+      "dest": "/api/pinterest.js",
+      "methods": ["GET", "OPTIONS"]
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -12,12 +43,6 @@
           "value": "nosniff"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/mediafire",
-      "destination": "/api/mediafire.js"
     }
   ]
 }
