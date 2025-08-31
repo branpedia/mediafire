@@ -5,17 +5,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "install:fix": "npm install --ignore-scripts && npx puppeteer browsers install chrome"
+    "preview": "vite preview"
   },
   "dependencies": {
     "vite": "^4.4.0",
     "cloudscraper": "^4.6.0",
     "jsdom": "^22.1.0",
     "puppeteer": "^21.5.2",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "puppeteer-extra-plugin-recaptcha": "^3.6.8",
-    "axios": "^1.5.0"
+    "puppeteer-core": "^21.5.2"
   }
 }
