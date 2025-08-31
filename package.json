@@ -1,7 +1,7 @@
 {
   "name": "mediafire-api-website",
   "version": "1.0.0",
-  "description": "Website untuk mendapatkan informasi dan link download dari MediaFire",
+  "description": "Website untuk mendapatkan informasi dan link download dari MediaFire dan Pinterest",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
