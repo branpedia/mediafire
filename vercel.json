@@ -1,11 +1,23 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "api/pin.js", "use": "@vercel/node" },
-    { "src": "index.html", "use": "@vercel/static" }
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    }
   ],
-  "routes": [
-    { "src": "/api/pin", "dest": "api/pin.js" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    {
+      "source": "/api/mediafire",
+      "destination": "/api/mediafire.js"
+    }
   ]
 }
