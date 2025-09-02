@@ -10,6 +10,18 @@
         {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
         }
       ]
     }
@@ -18,6 +30,30 @@
     {
       "source": "/api/mediafire",
       "destination": "/api/mediafire.js"
+    },
+    {
+      "source": "/api/youtube",
+      "destination": "/api/youtube.js"
+    },
+    {
+      "source": "/api/instagram",
+      "destination": "/api/instagram.js"
+    },
+    {
+      "source": "/api/tiktok",
+      "destination": "/api/tiktok.js"
+    },
+    {
+      "source": "/api/stats",
+      "destination": "/api/stats.js"
+    },
+    {
+      "source": "/api/health",
+      "destination": "/api/health.js"
+    },
+    {
+      "source": "/api",
+      "destination": "/api/index.js"
     }
   ]
 }
