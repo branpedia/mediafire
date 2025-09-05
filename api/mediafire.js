@@ -4,7 +4,6 @@ import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha';
 import UserAgent from 'user-agents';
-import axios from 'axios';
 
 // Apply stealth and recaptcha plugins
 puppeteer.use(StealthPlugin());
@@ -23,115 +22,6 @@ setInterval(() => {
     }
   }
 }, 60 * 1000);
-
-// Fungsi untuk extract download URL dengan berbagai metode
-function extractDownloadUrl(document, html) {
-  let downloadUrl = '';
-
-  // Method 1: data-scrambled-url attribute (utama)
-  const downloadButton = document.querySelector('#downloadButton');
-  if (downloadButton) {
-    const scrambledUrl = downloadButton.getAttribute('data-scrambled-url');
-    if (scrambledUrl) {
-      try {
-        downloadUrl = Buffer.from(scrambledUrl, 'base64').toString('utf8');
-        console.log('Found URL from data-scrambled-url:', downloadUrl);
-        return downloadUrl;
-      } catch (e) {
-        console.log('Base64 decoding failed for scrambled URL');
-      }
-    }
-  }
-
-  // Method 2: onclick attribute parsing
-  if (downloadButton) {
-    const onClickAttr = downloadButton.getAttribute('onclick');
-    if (onClickAttr) {
-      const urlMatch = onClickAttr.match(/(https?:\/\/[^\s'"]+\.mediafire\.com[^\s'"]*)/);
-      if (urlMatch) {
-        downloadUrl = urlMatch[0];
-        console.log('Found URL from onclick:', downloadUrl);
-        return downloadUrl;
-      }
-      
-      // Cari URL di dalam fungsi
-      const funcMatch = onClickAttr.match(/window\.location\.href\s*=\s*['"]([^'"]+)['"]/);
-      if (funcMatch) {
-        downloadUrl = funcMatch[1];
-        console.log('Found URL from window.location:', downloadUrl);
-        return downloadUrl;
-      }
-    }
-  }
-
-  // Method 3: Direct link dari script tags (deep scan)
-  const scripts = document.querySelectorAll('script');
-  for (const script of scripts) {
-    const scriptContent = script.textContent;
-    
-    // Pattern matching untuk berbagai format URL
-    const patterns = [
-      /(https?:\/\/[^"']*mediafire\.com[^"']*\/file\/[^"']*)/,
-      /(https?:\/\/[^"']*mediafire\.com[^"']*\/download\/[^"']*)/,
-      /(https?:\/\/[^"']*mediafire\.com[^"']*\/\?[^"']*)/,
-      /downloadUrl[:\s]*['"]([^"']+)['"]/,
-      /direct_link[:\s]*['"]([^"']+)['"]/,
-      /href\s*=\s*['"]([^"']*mediafire\.com[^"']*)['"]/
-    ];
-
-    for (const pattern of patterns) {
-      const matches = scriptContent.match(pattern);
-      if (matches && matches[1]) {
-        downloadUrl = matches[1].replace(/\\\//g, '/');
-        console.log('Found URL from script:', downloadUrl);
-        return downloadUrl;
-      }
-    }
-  }
-
-  // Method 4: Cari di seluruh HTML
-  const htmlMatches = html.match(/(https?:\/\/[^"']*mediafire\.com[^"']*\/file\/[^"']*)/);
-  if (htmlMatches) {
-    downloadUrl = htmlMatches[1];
-    console.log('Found URL from HTML scan:', downloadUrl);
-    return downloadUrl;
-  }
-
-  // Method 5: Coba konstruksi manual URL download
-  const fileIdMatch = html.match(/\/file\/([a-z0-9]+)\//);
-  if (fileIdMatch && fileIdMatch[1]) {
-    downloadUrl = `https://download${Math.floor(Math.random() * 10) + 1}.mediafire.com/${fileIdMatch[1]}/file`;
-    console.log('Constructed URL from file ID:', downloadUrl);
-    return downloadUrl;
-  }
-
-  return downloadUrl;
-}
-
-// Fungsi untuk verify download URL
-async function verifyDownloadUrl(url) {
-  if (!url) return false;
-  
-  try {
-    const response = await axios.head(url, {
-      timeout: 5000,
-      validateStatus: (status) => status < 400
-    });
-    return response.status === 200 || response.status === 302;
-  } catch (error) {
-    // Coba dengan GET request jika HEAD gagal
-    try {
-      const response = await axios.get(url, {
-        timeout: 5000,
-        maxRedirects: 5,
-        validateStatus: (status) => status < 400
-      });
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-}
 
 export default async function handler(request, response) {
   // Set CORS headers
@@ -154,23 +44,21 @@ export default async function handler(request, response) {
     return response.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
-  const { url, retry = 0, force = false } = request.query;
+  const { url, retry = 0 } = request.query;
 
   if (!url) {
     return response.status(400).json({ success: false, error: 'Parameter URL diperlukan' });
   }
 
-  // Check cache first (kecuali force=true)
+  // Check cache first
   const cacheKey = url;
-  if (!force) {
-    const cachedResult = successCache.get(cacheKey);
-    if (cachedResult && (Date.now() - cachedResult.timestamp < CACHE_DURATION)) {
-      return response.status(200).json({
-        success: true,
-        data: cachedResult.data,
-        cached: true
-      });
-    }
+  const cachedResult = successCache.get(cacheKey);
+  if (cachedResult && (Date.now() - cachedResult.timestamp < CACHE_DURATION)) {
+    return response.status(200).json({
+      success: true,
+      data: cachedResult.data,
+      cached: true
+    });
   }
 
   try {
@@ -185,110 +73,119 @@ export default async function handler(request, response) {
 
     const userAgent = new UserAgent({ deviceCategory: 'desktop' }).toString();
 
-    console.log(`Processing MediaFire URL: ${url}`);
-
     try {
-      // Langsung gunakan Puppeteer untuk hasil yang lebih reliable
-      console.log('Using Puppeteer Stealth for better reliability...');
-      
-      browser = await puppeteer.launch({
-        headless: 'new',
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-web-security',
-          '--disable-features=IsolateOrigins,site-per-process',
-          '--disable-site-isolation-trials',
-          '--disable-background-timer-throttling',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-renderer-backgrounding',
-          '--window-size=1920,1080'
-        ]
-      });
-
-      page = await browser.newPage();
-      
-      // Set realistic viewport and user agent
-      await page.setViewport({ width: 1920, height: 1080 });
-      await page.setUserAgent(userAgent);
-      
-      // Set extra headers to mimic real browser
-      await page.setExtraHTTPHeaders({
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1'
-      });
-
-      // Enable request interception to block unnecessary resources
-      await page.setRequestInterception(true);
-      page.on('request', (req) => {
-        const resourceType = req.resourceType();
-        if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
-          req.abort();
-        } else {
-          req.continue();
+      // First try with cloudscraper
+      console.log('Trying with CloudScraper...');
+      html = await cloudscraper.get({
+        url: url,
+        headers: {
+          'User-Agent': userAgent,
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+          'Cache-Control': 'max-age=0'
         }
       });
-
-      // Navigate to URL dengan timeout lebih lama
-      await page.goto(url, { 
-        waitUntil: 'networkidle2',
-        timeout: 45000
-      });
-
-      // Tunggu sampai elemen penting muncul
-      await Promise.race([
-        page.waitForSelector('#downloadButton', { timeout: 10000 }),
-        page.waitForSelector('.dl-btn-label', { timeout: 10000 }),
-        page.waitForSelector('.details', { timeout: 10000 }),
-        new Promise(resolve => setTimeout(resolve, 5000)) // Minimal tunggu 5 detik
-      ]);
-
-      // Scroll ke download button untuk memastikan ter-render
-      await page.evaluate(() => {
-        const downloadBtn = document.querySelector('#downloadButton');
-        if (downloadBtn) {
-          downloadBtn.scrollIntoView();
-        }
-      });
-
-      // Tunggu sebentar untuk memastikan JavaScript selesai dieksekusi
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      html = await page.content();
-
-    } catch (puppeteerError) {
-      console.error('Puppeteer failed:', puppeteerError);
+    } catch (error) {
+      console.log('Cloudscraper failed, trying with Puppeteer Stealth...');
       
-      // Fallback ke cloudscraper
       try {
-        console.log('Falling back to CloudScraper...');
-        html = await cloudscraper.get({
-          url: url,
-          headers: {
-            'User-Agent': userAgent,
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Cache-Control': 'max-age=0'
+        // Use Puppeteer with stealth plugin
+        browser = await puppeteer.launch({
+          headless: 'new',
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-web-security',
+            '--disable-features=IsolateOrigins,site-per-process',
+            '--disable-site-isolation-trials',
+            '--disable-background-timer-throttling',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-renderer-backgrounding',
+            '--window-size=1920,1080'
+          ]
+        });
+
+        page = await browser.newPage();
+        
+        // Set realistic viewport and user agent
+        await page.setViewport({ width: 1920, height: 1080 });
+        await page.setUserAgent(userAgent);
+        
+        // Set extra headers to mimic real browser
+        await page.setExtraHTTPHeaders({
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1'
+        });
+
+        // Enable request interception to block unnecessary resources
+        await page.setRequestInterception(true);
+        page.on('request', (req) => {
+          const resourceType = req.resourceType();
+          if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
+            req.abort();
+          } else {
+            req.continue();
           }
         });
-      } catch (cloudscraperError) {
-        console.error('CloudScraper also failed:', cloudscraperError);
-        throw new Error('Both methods failed to fetch the page');
-      }
-    } finally {
-      if (browser) {
-        await browser.close();
+
+        // Navigate to URL with longer timeout
+        await page.goto(url, { 
+          waitUntil: 'networkidle2',
+          timeout: 30000
+        });
+
+        // Check for CloudFlare challenge
+        const isCloudFlare = await page.evaluate(() => {
+          return document.querySelector('#challenge-form') !== null || 
+                 document.title.includes('Cloudflare') ||
+                 document.body.textContent.includes('Checking your browser');
+        });
+
+        if (isCloudFlare) {
+          console.log('CloudFlare detected, waiting for challenge to complete...');
+          // Wait for CloudFlare challenge to complete
+          await page.waitForFunction(() => {
+            return !document.title.includes('Cloudflare') && 
+                   !document.body.textContent.includes('Checking your browser');
+          }, { timeout: 15000 });
+        }
+
+        // Wait for download button to appear
+        await page.waitForSelector('#downloadButton, .dl-btn-label, .details', { 
+          timeout: 10000 
+        }).catch(() => {
+          console.log('Download elements not found, continuing...');
+        });
+
+        html = await page.content();
+
+      } catch (puppeteerError) {
+        console.error('Puppeteer also failed:', puppeteerError);
+        throw new Error('Both CloudScraper and Puppeteer failed to bypass protection');
+      } finally {
+        if (browser) {
+          await browser.close();
+        }
       }
     }
 
     const dom = new JSDOM(html);
     const document = dom.window.document;
+
+    // Check if we're being blocked
+    const isBlocked = document.title.includes('Cloudflare') || 
+                     document.body.textContent.includes('Checking your browser') ||
+                     document.querySelector('#challenge-form');
+
+    if (isBlocked) {
+      throw new Error('CloudFlare protection detected and could not be bypassed');
+    }
 
     // Extract file information
     const fileNameElem = document.querySelector('.dl-btn-label');
@@ -300,67 +197,67 @@ export default async function handler(request, response) {
     const uploadedElem = document.querySelector('.details li:nth-child(2) span');
     const uploaded = uploadedElem ? uploadedElem.textContent.trim() : 'Unknown';
 
-    // Extract download URL dengan berbagai metode
-    let downloadUrl = extractDownloadUrl(document, html);
+    // Extract download URL using multiple methods
+    let downloadUrl = '';
 
-    // Jika masih kosong, coba metode ekstrem
-    if (!downloadUrl) {
-      console.log('Trying extreme methods to extract download URL...');
-      
-      // Method ekstrem: cari semua link yang mungkin
-      const allLinks = document.querySelectorAll('a[href*="mediafire.com"]');
-      for (const link of allLinks) {
-        const href = link.getAttribute('href');
-        if (href && href.includes('/file/') || href.includes('/download/')) {
-          downloadUrl = href;
-          console.log('Found potential URL from link:', downloadUrl);
-          break;
+    // Method 1: data-scrambled-url attribute
+    const downloadButton = document.querySelector('#downloadButton');
+    if (downloadButton) {
+      const scrambledUrl = downloadButton.getAttribute('data-scrambled-url');
+      if (scrambledUrl) {
+        try {
+          downloadUrl = Buffer.from(scrambledUrl, 'base64').toString('utf8');
+        } catch (e) {
+          console.log('Base64 decoding failed for scrambled URL');
         }
       }
     }
 
-    // Verify download URL
-    let isValidUrl = false;
-    if (downloadUrl) {
-      isValidUrl = await verifyDownloadUrl(downloadUrl);
-      console.log(`Download URL verification: ${isValidUrl}`);
+    // Method 2: onclick attribute parsing
+    if (!downloadUrl && downloadButton) {
+      const onClickAttr = downloadButton.getAttribute('onclick');
+      if (onClickAttr) {
+        const urlMatch = onClickAttr.match(/(https?:\/\/[^\s'"]+)/);
+        if (urlMatch) downloadUrl = urlMatch[0];
+      }
     }
 
-    // Jika URL tidak valid, coba konstruksi manual
-    if (!isValidUrl) {
-      console.log('Constructing manual download URL...');
-      const fileIdMatch = url.match(/\/file\/([a-z0-9]+)/) || html.match(/kNO\s*=\s*['"]([a-z0-9]+)['"]/);
-      if (fileIdMatch && fileIdMatch[1]) {
-        downloadUrl = `https://download${Math.floor(Math.random() * 4) + 1}.mediafire.com/${fileIdMatch[1]}/file`;
-        isValidUrl = await verifyDownloadUrl(downloadUrl);
-        console.log(`Manual URL verification: ${isValidUrl}`);
+    // Method 3: Direct link extraction from script tags
+    if (!downloadUrl) {
+      const scripts = document.querySelectorAll('script');
+      for (const script of scripts) {
+        const scriptContent = script.textContent;
+        if (scriptContent.includes('downloadUrl') || scriptContent.includes('direct_link')) {
+          const urlMatch = scriptContent.match(/(https?:\/\/[^"']*mediafire\.com[^"']*)/);
+          if (urlMatch) {
+            downloadUrl = urlMatch[0];
+            break;
+          }
+        }
       }
     }
 
     // Get file extension from filename
-    const fileExtension = fileName.includes('.') ? fileName.split('.').pop() : 'Unknown';
+    const fileExtension = fileName.split('.').pop() || 'Unknown';
 
     const result = {
       name: fileName,
       size: fileSize,
       extension: fileExtension,
       uploaded: uploaded,
-      downloadUrl: isValidUrl ? downloadUrl : ''
+      downloadUrl: downloadUrl
     };
 
-    // Cache the successful result hanya jika download URL valid
-    if (isValidUrl) {
-      successCache.set(cacheKey, {
-        data: result,
-        timestamp: Date.now()
-      });
-    }
+    // Cache the successful result
+    successCache.set(cacheKey, {
+      data: result,
+      timestamp: Date.now()
+    });
 
     return response.status(200).json({
       success: true,
       data: result,
-      cached: false,
-      urlValid: isValidUrl
+      cached: false
     });
 
   } catch (error) {
